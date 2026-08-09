@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 export type CellKind = "void" | "wall" | "floor" | "goal" | "player" | "player-goal" | "box" | "box-goal";
 
 const LABEL: Partial<Record<CellKind, string>> = {
-  player: "P",
-  "player-goal": "P",
-  box: "B",
-  "box-goal": "B",
+  player: "🕵",
+  "player-goal": "🕵",
+  box: "💼",
+  "box-goal": "💼",
 };
 
 export function Cell({ kind }: { kind: CellKind }) {

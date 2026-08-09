@@ -67,6 +67,10 @@ export function useGame() {
     setLevelIndex((i) => Math.min(i + 1, LEVELS.length - 1));
   }, []);
 
+  const goToLevel = useCallback((index: number) => {
+    setLevelIndex(Math.max(0, Math.min(index, LEVELS.length - 1)));
+  }, []);
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const direction = KEY_TO_DIRECTION[e.key];
@@ -80,6 +84,8 @@ export function useGame() {
 
   return {
     level,
+    levelIndex,
+    levelNames: LEVELS.map((l) => l.name),
     state: slice.current,
     won,
     canUndo: slice.history.length > 0,
@@ -88,5 +94,6 @@ export function useGame() {
     undo,
     reset,
     nextLevel,
+    goToLevel,
   };
 }

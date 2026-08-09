@@ -167,3 +167,33 @@ body {
   color: var(--box-goal-edge);
   text-align: center;
 }
+
+.level-select {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 32rem;
+}
+
+.level-select__item {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  color: var(--muted);
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+  border-radius: 2px;
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+}
+
+.level-select__item:hover {
+  color: var(--text);
+  border-color: var(--goal-ring);
+}
+
+.level-select__item--active {
+  color: var(--bg);
+  background: var(--goal-ring);
+  border-color: var(--goal-ring);
+}

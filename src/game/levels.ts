@@ -1,7 +1,7 @@
 /**
  * Level data as classic Sokoban ASCII grids (see the notation doc in
- * `engine.ts`). Hand-authored and hand-verified solvable — not sourced
- * from any existing level pack.
+ * `engine.ts`). Hand-authored — not sourced from any existing level pack.
+ * Solvability is checked automatically in levels.test.ts.
  */
 export interface LevelSource {
   readonly name: string;
@@ -10,11 +10,11 @@ export interface LevelSource {
 
 export const LEVELS: readonly LevelSource[] = [
   {
-    name: "Tutorial",
+    name: "Dead Drop",
     rows: ["#####", "#@$.#", "#####"],
   },
   {
-    name: "Two Targets",
+    name: "Double Agent",
     rows: [
       "#######",
       "#     #",
@@ -22,6 +22,44 @@ export const LEVELS: readonly LevelSource[] = [
       "# . . #",
       "#  @  #",
       "#######",
+    ],
+  },
+  {
+    name: "Need to Know",
+    rows: [
+      "##########",
+      "#        #",
+      "#  $   $ #",
+      "#        #",
+      "#  .   . #",
+      "#    @   #",
+      "##########",
+    ],
+  },
+  {
+    name: "Triple Cross",
+    rows: [
+      "#######",
+      "#     #",
+      "# $ $ #",
+      "#  $  #",
+      "# . . #",
+      "#  .  #",
+      "#  @  #",
+      "#######",
+    ],
+  },
+  {
+    name: "The Vault",
+    rows: [
+      "#########",
+      "#   #   #",
+      "# $ #   #",
+      "#   #   #",
+      "#   #####",
+      "#     . #",
+      "# @      #",
+      "#########",
     ],
   },
 ];
