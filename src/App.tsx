@@ -3,6 +3,7 @@ import { Board } from "@/components/Board";
 import { CharacterSelect } from "@/components/CharacterSelect";
 import { LevelSelect } from "@/components/LevelSelect";
 import { TopBar } from "@/components/TopBar";
+import { TouchControls } from "@/components/TouchControls";
 import { Button } from "@/components/ui/8bit/button";
 import { type CharacterId, expressionForLevel, WIN_EXPRESSION } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
@@ -21,6 +22,7 @@ export function App() {
     won,
     canUndo,
     hasNextLevel,
+    applyMove,
     undo,
     reset,
     nextLevel,
@@ -77,9 +79,10 @@ export function App() {
         character={character}
         expression={won ? WIN_EXPRESSION : expressionForLevel(levelIndex)}
       />
+      <TouchControls onMove={applyMove} />
       {won && (
         <div className="win-banner">
-          <p>Level cleared.</p>
+          <p>{hasNextLevel ? "Level cleared." : "Mission accomplished — all levels cleared!"}</p>
           {scoreResult && (
             <p className="win-banner__score">
               {scoreResult.isNewBest ? "New best: " : "Best: "}
