@@ -135,22 +135,99 @@ body {
   border-color: var(--box-goal-edge);
 }
 
-.cell--player .cell__glyph,
-.cell--player-goal .cell__glyph {
-  width: 70%;
-  height: 70%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  background: var(--player);
-  border: 2px solid var(--player-edge);
-  border-radius: 50%;
-  color: #14181d;
+.cell__avatar {
+  width: 76%;
+  height: 76%;
+  position: relative;
 }
 
 .cell--player-goal {
   background: var(--floor);
+}
+
+.avatar {
+  position: absolute;
+  inset: 0;
+}
+
+.avatar--anya .avatar__head {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--player-edge);
+}
+
+.avatar--anya .avatar__hair {
+  position: absolute;
+  inset: 0;
+  background: #f4d35e;
+}
+
+.avatar--anya .avatar__stripe {
+  position: absolute;
+  left: 8%;
+  width: 84%;
+  height: 15%;
+  background: #ff6fa8;
+}
+
+.avatar--anya .avatar__stripe--1 {
+  top: 10%;
+  transform: rotate(-8deg);
+}
+
+.avatar--anya .avatar__stripe--2 {
+  top: 30%;
+  transform: rotate(-8deg);
+}
+
+.avatar--anya .avatar__face {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 46%;
+  bottom: 6%;
+  background: #f2c9a0;
+  border-radius: 50% 50% 40% 40%;
+}
+
+.avatar--bond .avatar__body {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: #d9a441;
+  border: 2px solid var(--player-edge);
+}
+
+.avatar--bond .avatar__ear {
+  position: absolute;
+  width: 28%;
+  height: 36%;
+  top: 2%;
+  background: #a5701f;
+  border-radius: 50%;
+  border: 2px solid var(--player-edge);
+}
+
+.avatar--bond .avatar__ear--left {
+  left: -6%;
+  transform: rotate(-25deg);
+}
+
+.avatar--bond .avatar__ear--right {
+  right: -6%;
+  transform: rotate(25deg);
+}
+
+.avatar--bond .avatar__snout {
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  bottom: 4%;
+  height: 32%;
+  background: #f1d9a0;
+  border-radius: 50%;
 }
 
 .cell--player-goal::after {
@@ -201,4 +278,64 @@ body {
   color: var(--bg);
   background: var(--goal-ring);
   border-color: var(--goal-ring);
+}
+
+.character-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 3rem 1rem;
+}
+
+.character-select__prompt {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.character-select__grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.character-select__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 12rem;
+  padding: 1.5rem 1rem;
+  background: var(--panel);
+  border: 3px solid var(--panel-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  color: var(--text);
+}
+
+.character-select__card:hover {
+  border-color: var(--goal-ring);
+}
+
+.character-select__avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--player-edge);
+}
+
+.character-select__name {
+  font-size: 0.85rem;
+  color: var(--goal-ring);
+}
+
+.character-select__tagline {
+  font-size: 0.55rem;
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
 }

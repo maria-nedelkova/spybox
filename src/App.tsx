@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Board } from "@/components/Board";
+import { CharacterSelect } from "@/components/CharacterSelect";
 import { LevelSelect } from "@/components/LevelSelect";
 import { TopBar } from "@/components/TopBar";
 import { Button } from "@/components/ui/8bit/button";
+import type { CharacterId } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
 import { recordScore } from "@/lib/bestScore";
 import { playSound } from "@/lib/sound";
 
 export function App() {
+  const [character, setCharacter] = useState<CharacterId | null>(null);
+
   const {
     level,
     levelIndex,
@@ -48,6 +52,10 @@ export function App() {
     setScoreResult(recordScore(level.name, stateRef.current.moves));
   }, [won, level.name]);
 
+  if (!character) {
+    return <CharacterSelect onSelect={setCharacter} />;
+  }
+
   return (
     <div className="app">
       <h1 className="title">SPYBOX</h1>
@@ -61,8 +69,9 @@ export function App() {
         onUndo={undo}
         onReset={reset}
         onToggleMuted={toggleMuted}
+        onSwitchAgent={() => setCharacter(null)}
       />
-      <Board level={level} state={state} />
+      <Board level={level} state={state} character={character} />
       {won && (
         <div className="win-banner">
           <p>Level cleared.</p>

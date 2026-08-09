@@ -1,5 +1,6 @@
 import { Cell, type CellKind } from "@/components/Cell";
 import { key } from "@/game/engine";
+import type { CharacterId } from "@/game/characters";
 import type { GameState, Level } from "@/game/types";
 
 function kindAt(level: Level, state: GameState, r: number, c: number): CellKind {
@@ -16,7 +17,15 @@ function kindAt(level: Level, state: GameState, r: number, c: number): CellKind 
   return isGoal ? "goal" : "floor";
 }
 
-export function Board({ level, state }: { level: Level; state: GameState }) {
+export function Board({
+  level,
+  state,
+  character,
+}: {
+  level: Level;
+  state: GameState;
+  character: CharacterId;
+}) {
   const rows = Array.from({ length: level.height }, (_, r) => r);
   const cols = Array.from({ length: level.width }, (_, c) => c);
 
@@ -26,7 +35,9 @@ export function Board({ level, state }: { level: Level; state: GameState }) {
       style={{ gridTemplateColumns: `repeat(${level.width}, var(--cell-size))` }}
     >
       {rows.map((r) =>
-        cols.map((c) => <Cell key={`${r},${c}`} kind={kindAt(level, state, r, c)} />),
+        cols.map((c) => (
+          <Cell key={`${r},${c}`} kind={kindAt(level, state, r, c)} character={character} />
+        )),
       )}
     </div>
   );

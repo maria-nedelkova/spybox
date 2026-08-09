@@ -9,6 +9,7 @@ export function TopBar({
   onUndo,
   onReset,
   onToggleMuted,
+  onSwitchAgent,
 }: {
   levelName: string;
   moves: number;
@@ -18,6 +19,7 @@ export function TopBar({
   onUndo: () => void;
   onReset: () => void;
   onToggleMuted: () => void;
+  onSwitchAgent: () => void;
 }) {
   return (
     <div className="topbar">
@@ -36,6 +38,9 @@ export function TopBar({
       </Button>
       <Button size="sm" variant="secondary" onClick={onToggleMuted}>
         {muted ? "🔇" : "🔊"}
+      </Button>
+      <Button size="sm" variant="secondary" onClick={onSwitchAgent}>
+        Switch agent
       </Button>
     </div>
   );
