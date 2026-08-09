@@ -168,6 +168,11 @@ body {
   text-align: center;
 }
 
+.win-banner__score {
+  font-size: 0.6rem;
+  color: var(--goal-ring);
+}
+
 .level-select {
   display: flex;
   flex-wrap: wrap;

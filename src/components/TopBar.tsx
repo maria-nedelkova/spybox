@@ -5,15 +5,19 @@ export function TopBar({
   moves,
   pushes,
   canUndo,
+  muted,
   onUndo,
   onReset,
+  onToggleMuted,
 }: {
   levelName: string;
   moves: number;
   pushes: number;
   canUndo: boolean;
+  muted: boolean;
   onUndo: () => void;
   onReset: () => void;
+  onToggleMuted: () => void;
 }) {
   return (
     <div className="topbar">
@@ -29,6 +33,9 @@ export function TopBar({
       </Button>
       <Button size="sm" variant="secondary" onClick={onReset}>
         Reset
+      </Button>
+      <Button size="sm" variant="secondary" onClick={onToggleMuted}>
+        {muted ? "🔇" : "🔊"}
       </Button>
     </div>
   );

@@ -1,8 +1,12 @@
+import { useEffect, useRef, useState } from "react";
 import { Board } from "@/components/Board";
 import { LevelSelect } from "@/components/LevelSelect";
 import { TopBar } from "@/components/TopBar";
 import { Button } from "@/components/ui/8bit/button";
 import { useGame } from "@/hooks/useGame";
+import { useMuted } from "@/hooks/useMuted";
+import { recordScore } from "@/lib/bestScore";
+import { playSound } from "@/lib/sound";
 
 export function App() {
   const {
@@ -18,6 +22,31 @@ export function App() {
     nextLevel,
     goToLevel,
   } = useGame();
+  const { muted, toggle: toggleMuted } = useMuted();
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
+
+  const prevRef = useRef({ moves: state.moves, pushes: state.pushes, levelName: level.name });
+  useEffect(() => {
+    const prev = prevRef.current;
+    if (prev.levelName === level.name && !muted && state.moves > prev.moves) {
+      playSound(state.pushes > prev.pushes ? "push" : "move");
+    }
+    prevRef.current = { moves: state.moves, pushes: state.pushes, levelName: level.name };
+  }, [state.moves, state.pushes, level.name, muted]);
+
+  const [scoreResult, setScoreResult] = useState<{ best: number; isNewBest: boolean } | null>(null);
+  useEffect(() => {
+    if (!won) {
+      setScoreResult(null);
+      return;
+    }
+    if (!mutedRef.current) playSound("win");
+    setScoreResult(recordScore(level.name, stateRef.current.moves));
+  }, [won, level.name]);
 
   return (
     <div className="app">
@@ -28,13 +57,21 @@ export function App() {
         moves={state.moves}
         pushes={state.pushes}
         canUndo={canUndo}
+        muted={muted}
         onUndo={undo}
         onReset={reset}
+        onToggleMuted={toggleMuted}
       />
       <Board level={level} state={state} />
       {won && (
         <div className="win-banner">
           <p>Level cleared.</p>
+          {scoreResult && (
+            <p className="win-banner__score">
+              {scoreResult.isNewBest ? "New best: " : "Best: "}
+              {scoreResult.best} moves
+            </p>
+          )}
           {hasNextLevel && (
             <Button size="sm" onClick={nextLevel}>
               Next level →
