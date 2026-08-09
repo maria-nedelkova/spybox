@@ -4,7 +4,7 @@ import { CharacterSelect } from "@/components/CharacterSelect";
 import { LevelSelect } from "@/components/LevelSelect";
 import { TopBar } from "@/components/TopBar";
 import { Button } from "@/components/ui/8bit/button";
-import type { CharacterId } from "@/game/characters";
+import { type CharacterId, expressionForLevel, WIN_EXPRESSION } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
 import { recordScore } from "@/lib/bestScore";
@@ -71,7 +71,12 @@ export function App() {
         onToggleMuted={toggleMuted}
         onSwitchAgent={() => setCharacter(null)}
       />
-      <Board level={level} state={state} character={character} />
+      <Board
+        level={level}
+        state={state}
+        character={character}
+        expression={won ? WIN_EXPRESSION : expressionForLevel(levelIndex)}
+      />
       {won && (
         <div className="win-banner">
           <p>Level cleared.</p>

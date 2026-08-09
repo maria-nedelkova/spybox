@@ -1,44 +1,45 @@
-import { Cell, type CellKind } from "@/components/Cell";
-import { key } from "@/game/engine";
-import type { CharacterId } from "@/game/characters";
+import { BoxToken } from "@/components/BoxToken";
+import { Cell, type TerrainKind } from "@/components/Cell";
+import { PlayerToken } from "@/components/PlayerToken";
+import type { CharacterId, Expression } from "@/game/characters";
 import type { GameState, Level } from "@/game/types";
 
-function kindAt(level: Level, state: GameState, r: number, c: number): CellKind {
+function terrainAt(level: Level, r: number, c: number): TerrainKind {
   const k = `${r},${c}`;
   if (level.walls.has(k)) return "wall";
   if (!level.floors.has(k)) return "void";
-
-  const isGoal = level.goals.has(k);
-  const isPlayer = key(state.player) === k;
-  const isBox = state.boxes.has(k);
-
-  if (isPlayer) return isGoal ? "player-goal" : "player";
-  if (isBox) return isGoal ? "box-goal" : "box";
-  return isGoal ? "goal" : "floor";
+  return level.goals.has(k) ? "goal" : "floor";
 }
 
 export function Board({
   level,
   state,
   character,
+  expression,
 }: {
   level: Level;
   state: GameState;
   character: CharacterId;
+  expression: Expression;
 }) {
   const rows = Array.from({ length: level.height }, (_, r) => r);
   const cols = Array.from({ length: level.width }, (_, c) => c);
 
   return (
-    <div
-      className="board"
-      style={{ gridTemplateColumns: `repeat(${level.width}, var(--cell-size))` }}
-    >
-      {rows.map((r) =>
-        cols.map((c) => (
-          <Cell key={`${r},${c}`} kind={kindAt(level, state, r, c)} character={character} />
-        )),
-      )}
+    <div className="board">
+      <div
+        className="board__terrain"
+        style={{ gridTemplateColumns: `repeat(${level.width}, var(--cell-size))` }}
+      >
+        {rows.map((r) => cols.map((c) => <Cell key={`${r},${c}`} kind={terrainAt(level, r, c)} />))}
+      </div>
+      <div className="board__tokens">
+        {[...state.boxes].map((k) => {
+          const [r, c] = k.split(",").map(Number) as [number, number];
+          return <BoxToken key={k} r={r} c={c} onGoal={level.goals.has(k)} />;
+        })}
+        <PlayerToken r={state.player.r} c={state.player.c} character={character} expression={expression} />
+      </div>
     </div>
   );
 }
