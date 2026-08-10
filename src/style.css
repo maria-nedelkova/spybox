@@ -58,6 +58,15 @@ body {
   text-shadow: 3px 3px 0 #000;
 }
 
+.briefing {
+  margin: 0;
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-align: center;
+  max-width: 28rem;
+  line-height: 1.6;
+}
+
 .topbar {
   display: flex;
   align-items: center;

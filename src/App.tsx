@@ -18,7 +18,9 @@ export function App() {
     level,
     levelIndex,
     levelNames,
+    briefing,
     state,
+    facing,
     won,
     canUndo,
     hasNextLevel,
@@ -44,6 +46,16 @@ export function App() {
     prevRef.current = { moves: state.moves, pushes: state.pushes, levelName: level.name };
   }, [state.moves, state.pushes, level.name, muted]);
 
+  const [isMoving, setIsMoving] = useState(false);
+  const moveCountRef = useRef(state.moves);
+  useEffect(() => {
+    if (state.moves === moveCountRef.current) return;
+    moveCountRef.current = state.moves;
+    setIsMoving(true);
+    const timeout = setTimeout(() => setIsMoving(false), 160);
+    return () => clearTimeout(timeout);
+  }, [state.moves]);
+
   const [scoreResult, setScoreResult] = useState<{ best: number; isNewBest: boolean } | null>(null);
   useEffect(() => {
     if (!won) {
@@ -62,6 +74,7 @@ export function App() {
     <div className="app">
       <h1 className="title">SPYBOX</h1>
       <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={goToLevel} />
+      <p className="briefing">{briefing}</p>
       <TopBar
         levelName={level.name}
         moves={state.moves}
@@ -78,6 +91,8 @@ export function App() {
         state={state}
         character={character}
         expression={won ? WIN_EXPRESSION : expressionForLevel(levelIndex)}
+        facing={facing}
+        moving={isMoving}
       />
       <TouchControls onMove={applyMove} />
       {won && (

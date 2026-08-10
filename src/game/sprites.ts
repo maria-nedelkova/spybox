@@ -2,23 +2,12 @@ import type { Palette, SpriteMatrix, SpriteRow } from "@/components/PixelSprite"
 import type { Expression } from "@/game/characters";
 
 /**
- * Hand-authored 10x14 pixel sprites, each defined as a left half (5 cols)
- * that gets mirrored into the full 10-col width — keeps the sprites
- * symmetric and halves the authoring work. "O" is a shared ink-outline
- * token so both characters read as the same flat, thick-outlined 8-bit
- * style.
+ * Bond's hand-authored 10x14 pixel sprite, defined as a left half (5 cols)
+ * that gets mirrored into the full 10-col width. Anya is rendered from an
+ * image sprite sheet instead (see Avatar.tsx).
  */
 export const SPRITE_PALETTE: Palette = {
   O: "#1a140f",
-  H: "#f7d774",
-  S: "#ff6fa8",
-  F: "#ffd9b0",
-  P: "#3fae5c",
-  L: "#ff9fa8",
-  M: "#5a3420",
-  J: "#333a52",
-  N: "#262b38",
-  Z: "#161822",
   Fu: "#d9a441",
   Fd: "#a5701f",
   Ey: "#241a12",
@@ -39,33 +28,6 @@ interface SpriteDef {
   readonly mouthRowIndex: number;
   readonly expressions: Partial<Record<Expression, ExpressionOverride>>;
 }
-
-const ANYA: SpriteDef = {
-  base: [
-    [".", ".", ".", "O", "H"],
-    [".", ".", "O", "H", "H"],
-    [".", "O", "H", "S", "H"],
-    ["O", "H", "H", "F", "F"],
-    ["O", "H", "F", "P", "F"], // eyeRow
-    ["O", "H", "F", "L", "F"],
-    ["O", "H", "F", "M", "F"], // mouthRow
-    [".", "O", "F", "F", "O"],
-    [".", ".", "O", "J", "J"],
-    [".", "F", "J", "J", "J"],
-    [".", "O", "J", "J", "O"],
-    [".", ".", "O", "N", "N"],
-    [".", ".", "O", "N", "N"],
-    [".", ".", "O", "Z", "O"],
-  ],
-  eyeRowIndex: 4,
-  mouthRowIndex: 6,
-  expressions: {
-    determined: { mouthRow: ["O", "H", "M", "M", "F"] },
-    surprised: { eyeRow: ["O", "H", "P", "P", "F"], mouthRow: ["O", "F", "M", "M", "F"] },
-    sleepy: { eyeRow: ["O", "H", "F", "H", "F"] },
-    happy: { mouthRow: ["O", "H", "F", "M", "M"] },
-  },
-};
 
 const BOND: SpriteDef = {
   base: [
@@ -106,10 +68,6 @@ function buildMatrix(def: SpriteDef, expression: Expression): SpriteMatrix {
     return row;
   });
   return rows.map(mirrorRow);
-}
-
-export function getAnyaSprite(expression: Expression): SpriteMatrix {
-  return buildMatrix(ANYA, expression);
 }
 
 export function getBondSprite(expression: Expression): SpriteMatrix {

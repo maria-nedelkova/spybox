@@ -32,6 +32,7 @@ export function useGame() {
   );
 
   const [slice, setSlice] = useState<Slice>(() => freshSlice(level));
+  const [facing, setFacing] = useState<Direction>("down");
 
   useEffect(() => {
     setSlice(freshSlice(level));
@@ -41,6 +42,7 @@ export function useGame() {
 
   const applyMove = useCallback(
     (direction: Direction) => {
+      setFacing(direction);
       if (won) return;
       setSlice((s) => {
         const next = move(level, s.current, direction);
@@ -86,7 +88,9 @@ export function useGame() {
     level,
     levelIndex,
     levelNames: LEVELS.map((l) => l.name),
+    briefing: LEVELS[levelIndex]!.briefing,
     state: slice.current,
+    facing,
     won,
     canUndo: slice.history.length > 0,
     hasNextLevel: levelIndex < LEVELS.length - 1,

@@ -1,16 +1,25 @@
+import { AnyaSprite } from "@/components/AnyaSprite";
 import { PixelSprite } from "@/components/PixelSprite";
 import type { CharacterId, Expression } from "@/game/characters";
-import { getAnyaSprite, getBondSprite, SPRITE_PALETTE } from "@/game/sprites";
+import { getBondSprite, SPRITE_PALETTE } from "@/game/sprites";
+import type { Direction } from "@/game/types";
 
 export function Avatar({
   character,
   expression = "neutral",
+  facing = "down",
+  moving = false,
   className,
 }: {
   character: CharacterId;
   expression?: Expression;
+  facing?: Direction;
+  moving?: boolean;
   className?: string;
 }) {
-  const matrix = character === "anya" ? getAnyaSprite(expression) : getBondSprite(expression);
-  return <PixelSprite matrix={matrix} palette={SPRITE_PALETTE} className={className} />;
+  if (character === "anya") {
+    return <AnyaSprite facing={facing} moving={moving} className={className} />;
+  }
+
+  return <PixelSprite matrix={getBondSprite(expression)} palette={SPRITE_PALETTE} className={className} />;
 }
