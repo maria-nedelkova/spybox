@@ -373,3 +373,70 @@ export function createDog2Sprite(
 ): Sprite {
   return new Sprite(imageSrc, DOG2_ANIMATIONS[direction], { fps: 8, loop: true, ...options });
 }
+
+/**
+ * Preset grid configs for the included `assets/chimera-sprite.png` sheet:
+ * a 4x5 grid, 230x250 px per frame, packing:
+ *  - Walk left (row 0, 4 frames)
+ *  - Walk right (row 1, 4 frames)
+ *  - Walk forward/down (row 2, 4 frames)
+ *  - Walk backward/up (row 3, 3 frames — cell 4 of that row is unused/empty)
+ *  - Four single-frame poses (row 4): Jump, Die, Wink, Dizzy
+ *
+ * Verified by direct pixel inspection (segment scanning) to exactly match
+ * this documented layout — unlike the dog sheet, no correction needed here.
+ */
+const CHIMERA_GRID = { frameWidth: 230, frameHeight: 250, columns: 4, rows: 5 } as const;
+
+export const CHIMERA_WALK_LEFT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 0 };
+export const CHIMERA_WALK_RIGHT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 4 };
+export const CHIMERA_WALK_FORWARD_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 8 };
+export const CHIMERA_WALK_BACKWARD_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 3, startFrame: 12 };
+
+export const CHIMERA_JUMP_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 16 };
+export const CHIMERA_DIE_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 17 };
+export const CHIMERA_WINK_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 18 };
+export const CHIMERA_DIZZY_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 19 };
+
+export type ChimeraAnimation =
+  | "walkLeft"
+  | "walkRight"
+  | "walkForward"
+  | "walkBackward"
+  | "jump"
+  | "die"
+  | "wink"
+  | "dizzy";
+
+const CHIMERA_ANIMATIONS: Record<ChimeraAnimation, SpriteSheetConfig> = {
+  walkLeft: CHIMERA_WALK_LEFT_SHEET,
+  walkRight: CHIMERA_WALK_RIGHT_SHEET,
+  walkForward: CHIMERA_WALK_FORWARD_SHEET,
+  walkBackward: CHIMERA_WALK_BACKWARD_SHEET,
+  jump: CHIMERA_JUMP_SHEET,
+  die: CHIMERA_DIE_SHEET,
+  wink: CHIMERA_WINK_SHEET,
+  dizzy: CHIMERA_DIZZY_SHEET,
+};
+
+/**
+ * Convenience factory for the bundled Mr. Chimera sheet. Defaults to
+ * walking forward; switch animations/poses later with e.g.:
+ *
+ *   sprite.setAnimation(CHIMERA_JUMP_SHEET, { loop: false });
+ *
+ * Single-pose animations (jump/die/wink/dizzy) have frameCount: 1, so
+ * update() leaves them frozen on their one frame automatically.
+ */
+export function createChimeraSprite(
+  imageSrc: string,
+  animation: ChimeraAnimation = "walkForward",
+  options?: SpriteAnimationOptions
+): Sprite {
+  const isPose = animation === "jump" || animation === "die" || animation === "wink" || animation === "dizzy";
+  return new Sprite(imageSrc, CHIMERA_ANIMATIONS[animation], {
+    fps: 8,
+    loop: !isPose,
+    ...options,
+  });
+}
