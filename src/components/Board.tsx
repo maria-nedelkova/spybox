@@ -1,7 +1,7 @@
 import { BoxToken } from "@/components/BoxToken";
 import { Cell, type TerrainKind } from "@/components/Cell";
 import { PlayerToken } from "@/components/PlayerToken";
-import type { CharacterId, Expression } from "@/game/characters";
+import type { CharacterId } from "@/game/characters";
 import type { Direction, GameState, Level } from "@/game/types";
 
 function terrainAt(level: Level, r: number, c: number): TerrainKind {
@@ -15,14 +15,12 @@ export function Board({
   level,
   state,
   character,
-  expression,
   facing,
   moving,
 }: {
   level: Level;
   state: GameState;
   character: CharacterId;
-  expression: Expression;
   facing: Direction;
   moving: boolean;
 }) {
@@ -46,7 +44,6 @@ export function Board({
           r={state.player.r}
           c={state.player.c}
           character={character}
-          expression={expression}
           facing={facing}
           moving={moving}
         />

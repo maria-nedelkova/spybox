@@ -1,5 +1,5 @@
 import { Avatar } from "@/components/Avatar";
-import type { CharacterId, Expression } from "@/game/characters";
+import type { CharacterId } from "@/game/characters";
 import { CELL_SIZE_PX, CELL_STEP_PX } from "@/game/constants";
 import type { Direction } from "@/game/types";
 
@@ -7,14 +7,12 @@ export function PlayerToken({
   r,
   c,
   character,
-  expression,
   facing,
   moving,
 }: {
   r: number;
   c: number;
   character: CharacterId;
-  expression: Expression;
   facing: Direction;
   moving: boolean;
 }) {
@@ -27,13 +25,7 @@ export function PlayerToken({
         transform: `translate(${c * CELL_STEP_PX}px, ${r * CELL_STEP_PX}px)`,
       }}
     >
-      <Avatar
-        character={character}
-        expression={expression}
-        facing={facing}
-        moving={moving}
-        className="token__avatar"
-      />
+      <Avatar character={character} facing={facing} moving={moving} className="token__avatar" />
     </div>
   );
 }

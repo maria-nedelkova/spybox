@@ -309,3 +309,67 @@ export function createPinkGirl2Sprite(
 ): Sprite {
   return new Sprite(imageSrc, PINKGIRL2_ANIMATIONS[animation], { fps: 10, loop: true, ...options });
 }
+
+/**
+ * Preset grid configs for the included `assets/bond-sprite.png` sheet:
+ * a 4x4 grid, 230x190 px per frame, packing four movement animations
+ * (an "Attack" row from the source sheet was left out):
+ *  - Forward (row 0, 4 frames)
+ *  - Backward (row 1, 4 frames)
+ *  - Left (row 2, 4 frames — all four cells are valid left-facing poses)
+ *  - Right (row 3) — verified by direct pixel inspection to only have one
+ *    genuine right-facing pose at flat index 13; index 12 is a mismatched
+ *    front-facing sit and indices 14-15 are empty, so Right plays as a
+ *    single static frame rather than a walk cycle.
+ *
+ * Left and Right are separately-drawn art, not mirror images of each
+ * other — no flipX needed.
+ */
+const DOG2_GRID = { frameWidth: 230, frameHeight: 190, columns: 4, rows: 4 } as const;
+
+export const DOG2_FORWARD_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 4,
+  startFrame: 0,
+};
+
+export const DOG2_BACKWARD_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 4,
+  startFrame: 4,
+};
+
+export const DOG2_LEFT_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 4,
+  startFrame: 8,
+};
+
+export const DOG2_RIGHT_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 1,
+  startFrame: 13,
+};
+
+export type Dog2Direction = "forward" | "backward" | "left" | "right";
+
+const DOG2_ANIMATIONS: Record<Dog2Direction, SpriteSheetConfig> = {
+  forward: DOG2_FORWARD_SHEET,
+  backward: DOG2_BACKWARD_SHEET,
+  left: DOG2_LEFT_SHEET,
+  right: DOG2_RIGHT_SHEET,
+};
+
+/**
+ * Convenience factory for the bundled pink dog movement sheet. Defaults to
+ * facing forward; switch directions later with e.g.:
+ *
+ *   sprite.setAnimation(DOG2_LEFT_SHEET, { fps: 8 });
+ */
+export function createDog2Sprite(
+  imageSrc: string,
+  direction: Dog2Direction = "forward",
+  options?: SpriteAnimationOptions
+): Sprite {
+  return new Sprite(imageSrc, DOG2_ANIMATIONS[direction], { fps: 8, loop: true, ...options });
+}
