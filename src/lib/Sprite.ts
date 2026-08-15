@@ -311,26 +311,40 @@ export function createPinkGirl2Sprite(
 }
 
 /**
- * Preset grid configs for the included `assets/bond-sprite.png` sheet:
- * a 4x4 grid, 230x190 px per frame, packing four movement animations
- * (an "Attack" row from the source sheet was left out):
- *  - Forward (row 0, 4 frames)
+ * Preset grid configs for the included `assets/bond-sprite.png` sheet
+ * (re-exported 2026-08-15 with a corrected Right row): a 4x4 grid,
+ * 230x190 px per frame, packing four movement animations (an "Attack"
+ * row from the source sheet was left out):
+ *  - Forward/sit (row 0, 4 frames) — a front-facing sit-and-wave, not a
+ *    walk cycle. Frame 0 (paws still) is used as the static idle/avatar
+ *    pose; frames 1-3 (paw raised at three positions) are used as the
+ *    forward-walk animation. There's no "paws back on the ground" frame
+ *    in the source art, so the walk loop has a slight visual jump at the
+ *    seam — would need a new frame drawn to fix, not something croppable
+ *    from the existing sheet.
  *  - Backward (row 1, 4 frames)
- *  - Left (row 2, 4 frames — all four cells are valid left-facing poses)
- *  - Right (row 3) — verified by direct pixel inspection to only have one
- *    genuine right-facing pose at flat index 13; index 12 is a mismatched
- *    front-facing sit and indices 14-15 are empty, so Right plays as a
- *    single static frame rather than a walk cycle.
+ *  - Left (row 2) — 3 valid left-facing walk frames (flat 8-10); cell 11
+ *    is empty in this export.
+ *  - Right (row 3) — 3 valid right-facing walk frames (flat 12-14); cell
+ *    15 is empty. (An earlier export of this sheet had Right broken to a
+ *    single usable frame — this one fixes that.)
  *
- * Left and Right are separately-drawn art, not mirror images of each
- * other — no flipX needed.
+ * Verified by direct pixel inspection (segment scanning). Left and Right
+ * are separately-drawn art, not mirror images of each other — no flipX
+ * needed.
  */
 const DOG2_GRID = { frameWidth: 230, frameHeight: 190, columns: 4, rows: 4 } as const;
 
-export const DOG2_FORWARD_SHEET: SpriteSheetConfig = {
+export const DOG2_FORWARD_IDLE_SHEET: SpriteSheetConfig = {
   ...DOG2_GRID,
-  frameCount: 4,
+  frameCount: 1,
   startFrame: 0,
+};
+
+export const DOG2_FORWARD_WALK_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 3,
+  startFrame: 1,
 };
 
 export const DOG2_BACKWARD_SHEET: SpriteSheetConfig = {
@@ -341,20 +355,20 @@ export const DOG2_BACKWARD_SHEET: SpriteSheetConfig = {
 
 export const DOG2_LEFT_SHEET: SpriteSheetConfig = {
   ...DOG2_GRID,
-  frameCount: 4,
+  frameCount: 3,
   startFrame: 8,
 };
 
 export const DOG2_RIGHT_SHEET: SpriteSheetConfig = {
   ...DOG2_GRID,
-  frameCount: 1,
-  startFrame: 13,
+  frameCount: 3,
+  startFrame: 12,
 };
 
 export type Dog2Direction = "forward" | "backward" | "left" | "right";
 
 const DOG2_ANIMATIONS: Record<Dog2Direction, SpriteSheetConfig> = {
-  forward: DOG2_FORWARD_SHEET,
+  forward: DOG2_FORWARD_WALK_SHEET,
   backward: DOG2_BACKWARD_SHEET,
   left: DOG2_LEFT_SHEET,
   right: DOG2_RIGHT_SHEET,

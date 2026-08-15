@@ -3,33 +3,37 @@ import bondSpriteSheet from "@/assets/bond-sprite.png";
 import {
   createDog2Sprite,
   DOG2_BACKWARD_SHEET,
-  DOG2_FORWARD_SHEET,
+  DOG2_FORWARD_IDLE_SHEET,
+  DOG2_FORWARD_WALK_SHEET,
   DOG2_LEFT_SHEET,
   DOG2_RIGHT_SHEET,
-  type Dog2Direction,
   type Sprite,
+  type SpriteSheetConfig,
 } from "@/lib/Sprite";
 import type { Direction } from "@/game/types";
 
-const SHEETS: Record<Dog2Direction, typeof DOG2_FORWARD_SHEET> = {
-  forward: DOG2_FORWARD_SHEET,
-  backward: DOG2_BACKWARD_SHEET,
-  left: DOG2_LEFT_SHEET,
-  right: DOG2_RIGHT_SHEET,
-};
+type AnimKey = "forward-idle" | "forward-walk" | "backward" | "left" | "right";
 
-function animationFor(direction: Direction): Dog2Direction {
+function animKeyFor(direction: Direction, moving: boolean): AnimKey {
   switch (direction) {
     case "up":
       return "backward";
     case "down":
-      return "forward";
+      return moving ? "forward-walk" : "forward-idle";
     case "left":
       return "left";
     case "right":
       return "right";
   }
 }
+
+const SHEETS: Record<AnimKey, SpriteSheetConfig> = {
+  "forward-idle": DOG2_FORWARD_IDLE_SHEET,
+  "forward-walk": DOG2_FORWARD_WALK_SHEET,
+  backward: DOG2_BACKWARD_SHEET,
+  left: DOG2_LEFT_SHEET,
+  right: DOG2_RIGHT_SHEET,
+};
 
 export function BondSprite({
   facing,
@@ -42,14 +46,14 @@ export function BondSprite({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spriteRef = useRef<Sprite | null>(null);
-  const animRef = useRef<Dog2Direction>("forward");
+  const animKeyRef = useRef<AnimKey>("forward-idle");
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const sprite = createDog2Sprite(bondSpriteSheet, "forward", { fps: 8 });
-    sprite.pause();
+    sprite.setAnimation(DOG2_FORWARD_IDLE_SHEET);
     spriteRef.current = sprite;
 
     const dpr = window.devicePixelRatio || 1;
@@ -95,10 +99,10 @@ export function BondSprite({
     const sprite = spriteRef.current;
     if (!sprite) return;
 
-    const anim = animationFor(facing);
-    if (animRef.current !== anim) {
-      animRef.current = anim;
-      sprite.setAnimation(SHEETS[anim], { fps: 8 });
+    const key = animKeyFor(facing, moving);
+    if (animKeyRef.current !== key) {
+      animKeyRef.current = key;
+      sprite.setAnimation(SHEETS[key], { fps: 8 });
     }
 
     if (moving) {
