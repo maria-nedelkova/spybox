@@ -13,14 +13,14 @@ import {
 } from "@/lib/Sprite";
 import type { Direction } from "@/game/types";
 
-type AnimKey = "forward-idle" | "forward-walk" | "backward" | "left" | "right";
+type AnimKey = "forward" | "backward" | "left" | "right";
 
-function animKeyFor(direction: Direction, moving: boolean): AnimKey {
+function animKeyFor(direction: Direction): AnimKey {
   switch (direction) {
     case "up":
       return "backward";
     case "down":
-      return moving ? "forward-walk" : "forward-idle";
+      return "forward";
     case "left":
       return "left";
     case "right":
@@ -28,10 +28,11 @@ function animKeyFor(direction: Direction, moving: boolean): AnimKey {
   }
 }
 
-// forward-walk is drawn from a separate sprite/image (bondWalkForwardRef);
-// everything else comes from the shared bond-sprite.png sheet.
+// "forward" (both standing-still and walking) is drawn from the dedicated
+// walk-forward sprite/image; everything else comes from the shared
+// bond-sprite.png sheet. The sitting DOG2_FORWARD_IDLE_SHEET pose is reserved
+// for the character-select screen (portrait mode) only — see below.
 const MAIN_SHEETS: Partial<Record<AnimKey, SpriteSheetConfig>> = {
-  "forward-idle": DOG2_FORWARD_IDLE_SHEET,
   backward: DOG2_BACKWARD_SHEET,
   left: DOG2_LEFT_SHEET,
   right: DOG2_RIGHT_SHEET,
@@ -40,16 +41,20 @@ const MAIN_SHEETS: Partial<Record<AnimKey, SpriteSheetConfig>> = {
 export function BondSprite({
   facing,
   moving,
+  portrait = false,
   className,
 }: {
   facing: Direction;
   moving: boolean;
+  portrait?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mainSpriteRef = useRef<Sprite | null>(null);
   const walkForwardSpriteRef = useRef<Sprite | null>(null);
-  const animKeyRef = useRef<AnimKey>("forward-idle");
+  const animKeyRef = useRef<AnimKey>("forward");
+  const portraitRef = useRef(portrait);
+  portraitRef.current = portrait;
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -82,7 +87,8 @@ export function BondSprite({
       const dt = (now - last) / 1000;
       last = now;
 
-      const active = animKeyRef.current === "forward-walk" ? walkForwardSprite : mainSprite;
+      const active =
+        !portraitRef.current && animKeyRef.current === "forward" ? walkForwardSprite : mainSprite;
       active.update(dt);
 
       const ctx = canvas?.getContext("2d");
@@ -108,11 +114,20 @@ export function BondSprite({
     const walkForwardSprite = walkForwardSpriteRef.current;
     if (!mainSprite || !walkForwardSprite) return;
 
-    const key = animKeyFor(facing, moving);
+    if (portrait) {
+      animKeyRef.current = "forward";
+      mainSprite.setAnimation(DOG2_FORWARD_IDLE_SHEET, { fps: 8 });
+      mainSprite.pause();
+      mainSprite.setFrame(0);
+      walkForwardSprite.pause();
+      return;
+    }
+
+    const key = animKeyFor(facing);
     const keyChanged = animKeyRef.current !== key;
     animKeyRef.current = key;
 
-    if (key === "forward-walk") {
+    if (key === "forward") {
       if (keyChanged) walkForwardSprite.setFrame(0);
       if (moving) walkForwardSprite.play();
       else {
@@ -132,7 +147,7 @@ export function BondSprite({
       mainSprite.pause();
       mainSprite.setFrame(0);
     }
-  }, [facing, moving]);
+  }, [facing, moving, portrait]);
 
   return <canvas ref={canvasRef} className={className} style={{ display: "block" }} />;
 }

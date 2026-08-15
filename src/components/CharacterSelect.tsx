@@ -14,7 +14,7 @@ export function CharacterSelect({ onSelect }: { onSelect: (id: CharacterId) => v
             className="character-select__card"
             onClick={() => onSelect(c.id)}
           >
-            <Avatar character={c.id} className="character-select__avatar" />
+            <Avatar character={c.id} portrait className="character-select__avatar" />
             <span className="character-select__name">{c.name}</span>
             <span className="character-select__tagline">{c.tagline}</span>
           </button>
