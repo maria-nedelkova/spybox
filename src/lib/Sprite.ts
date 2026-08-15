@@ -316,12 +316,11 @@ export function createPinkGirl2Sprite(
  * 230x190 px per frame, packing four movement animations (an "Attack"
  * row from the source sheet was left out):
  *  - Forward/sit (row 0, 4 frames) — a front-facing sit-and-wave, not a
- *    walk cycle. Frame 0 (paws still) is used as the static idle/avatar
- *    pose; frames 1-3 (paw raised at three positions) are used as the
- *    forward-walk animation. There's no "paws back on the ground" frame
- *    in the source art, so the walk loop has a slight visual jump at the
- *    seam — would need a new frame drawn to fix, not something croppable
- *    from the existing sheet.
+ *    walk cycle. Only frame 0 (paws still) is used from this row now —
+ *    as the static idle/avatar pose (character-select + resting between
+ *    moves). The forward *walk* animation comes from a separate
+ *    dedicated sheet (see BOND_WALK_FORWARD_SHEET below); frames 1-3 of
+ *    this row are unused now.
  *  - Backward (row 1, 4 frames)
  *  - Left (row 2) — 3 valid left-facing walk frames (flat 8-10); cell 11
  *    is empty in this export.
@@ -339,12 +338,6 @@ export const DOG2_FORWARD_IDLE_SHEET: SpriteSheetConfig = {
   ...DOG2_GRID,
   frameCount: 1,
   startFrame: 0,
-};
-
-export const DOG2_FORWARD_WALK_SHEET: SpriteSheetConfig = {
-  ...DOG2_GRID,
-  frameCount: 3,
-  startFrame: 1,
 };
 
 export const DOG2_BACKWARD_SHEET: SpriteSheetConfig = {
@@ -368,7 +361,7 @@ export const DOG2_RIGHT_SHEET: SpriteSheetConfig = {
 export type Dog2Direction = "forward" | "backward" | "left" | "right";
 
 const DOG2_ANIMATIONS: Record<Dog2Direction, SpriteSheetConfig> = {
-  forward: DOG2_FORWARD_WALK_SHEET,
+  forward: DOG2_FORWARD_IDLE_SHEET,
   backward: DOG2_BACKWARD_SHEET,
   left: DOG2_LEFT_SHEET,
   right: DOG2_RIGHT_SHEET,
@@ -386,6 +379,28 @@ export function createDog2Sprite(
   options?: SpriteAnimationOptions
 ): Sprite {
   return new Sprite(imageSrc, DOG2_ANIMATIONS[direction], { fps: 8, loop: true, ...options });
+}
+
+/**
+ * Preset grid config for `assets/bond-walk-forward.png`: a dedicated
+ * forward-walk sheet, separate from bond-sprite.png. The source art
+ * (`walk_forward_sheet_trimmed.png`) individually trims each of its 4
+ * frames to a tight, variable-width bounding box rather than a uniform
+ * grid, so it was re-composited (each frame centered in an equal-width
+ * cell, sized to the widest source frame) into this uniform 4x1 grid,
+ * 145x206 px per frame, so the generic column/row Sprite math applies.
+ */
+const BOND_WALK_FORWARD_GRID = { frameWidth: 145, frameHeight: 206, columns: 4, rows: 1 } as const;
+
+export const BOND_WALK_FORWARD_SHEET: SpriteSheetConfig = {
+  ...BOND_WALK_FORWARD_GRID,
+  frameCount: 4,
+  startFrame: 0,
+};
+
+/** Convenience factory for the dedicated Bond forward-walk sheet. */
+export function createBondWalkForwardSprite(imageSrc: string, options?: SpriteAnimationOptions): Sprite {
+  return new Sprite(imageSrc, BOND_WALK_FORWARD_SHEET, { fps: 8, loop: true, ...options });
 }
 
 /**

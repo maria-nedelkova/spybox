@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef } from "react";
 import bondSpriteSheet from "@/assets/bond-sprite.png";
+import bondWalkForwardSheet from "@/assets/bond-walk-forward.png";
 import {
+  createBondWalkForwardSprite,
   createDog2Sprite,
   DOG2_BACKWARD_SHEET,
   DOG2_FORWARD_IDLE_SHEET,
-  DOG2_FORWARD_WALK_SHEET,
   DOG2_LEFT_SHEET,
   DOG2_RIGHT_SHEET,
   type Sprite,
@@ -27,9 +28,10 @@ function animKeyFor(direction: Direction, moving: boolean): AnimKey {
   }
 }
 
-const SHEETS: Record<AnimKey, SpriteSheetConfig> = {
+// forward-walk is drawn from a separate sprite/image (bondWalkForwardRef);
+// everything else comes from the shared bond-sprite.png sheet.
+const MAIN_SHEETS: Partial<Record<AnimKey, SpriteSheetConfig>> = {
   "forward-idle": DOG2_FORWARD_IDLE_SHEET,
-  "forward-walk": DOG2_FORWARD_WALK_SHEET,
   backward: DOG2_BACKWARD_SHEET,
   left: DOG2_LEFT_SHEET,
   right: DOG2_RIGHT_SHEET,
@@ -45,16 +47,20 @@ export function BondSprite({
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spriteRef = useRef<Sprite | null>(null);
+  const mainSpriteRef = useRef<Sprite | null>(null);
+  const walkForwardSpriteRef = useRef<Sprite | null>(null);
   const animKeyRef = useRef<AnimKey>("forward-idle");
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const sprite = createDog2Sprite(bondSpriteSheet, "forward", { fps: 8 });
-    sprite.setAnimation(DOG2_FORWARD_IDLE_SHEET);
-    spriteRef.current = sprite;
+    const mainSprite = createDog2Sprite(bondSpriteSheet, "forward", { fps: 8 });
+    mainSprite.setAnimation(DOG2_FORWARD_IDLE_SHEET);
+    mainSpriteRef.current = mainSprite;
+
+    const walkForwardSprite = createBondWalkForwardSprite(bondWalkForwardSheet, { fps: 8, autoplay: false });
+    walkForwardSpriteRef.current = walkForwardSprite;
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -75,15 +81,17 @@ export function BondSprite({
     function loop(now: number) {
       const dt = (now - last) / 1000;
       last = now;
-      sprite.update(dt);
+
+      const active = animKeyRef.current === "forward-walk" ? walkForwardSprite : mainSprite;
+      active.update(dt);
 
       const ctx = canvas?.getContext("2d");
       if (ctx && canvas && canvas.width > 0 && canvas.height > 0) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const scale = Math.min(canvas.width / sprite.width, canvas.height / sprite.height);
-        const w = sprite.width * scale;
-        const h = sprite.height * scale;
-        sprite.draw(ctx, (canvas.width - w) / 2, (canvas.height - h) / 2, { scale });
+        const scale = Math.min(canvas.width / active.width, canvas.height / active.height);
+        const w = active.width * scale;
+        const h = active.height * scale;
+        active.draw(ctx, (canvas.width - w) / 2, (canvas.height - h) / 2, { scale });
       }
       raf = requestAnimationFrame(loop);
     }
@@ -96,20 +104,33 @@ export function BondSprite({
   }, []);
 
   useLayoutEffect(() => {
-    const sprite = spriteRef.current;
-    if (!sprite) return;
+    const mainSprite = mainSpriteRef.current;
+    const walkForwardSprite = walkForwardSpriteRef.current;
+    if (!mainSprite || !walkForwardSprite) return;
 
     const key = animKeyFor(facing, moving);
-    if (animKeyRef.current !== key) {
-      animKeyRef.current = key;
-      sprite.setAnimation(SHEETS[key], { fps: 8 });
+    const keyChanged = animKeyRef.current !== key;
+    animKeyRef.current = key;
+
+    if (key === "forward-walk") {
+      if (keyChanged) walkForwardSprite.setFrame(0);
+      if (moving) walkForwardSprite.play();
+      else {
+        walkForwardSprite.pause();
+        walkForwardSprite.setFrame(0);
+      }
+      return;
     }
 
+    const sheet = MAIN_SHEETS[key];
+    if (keyChanged && sheet) {
+      mainSprite.setAnimation(sheet, { fps: 8 });
+    }
     if (moving) {
-      sprite.play();
+      mainSprite.play();
     } else {
-      sprite.pause();
-      sprite.setFrame(0);
+      mainSprite.pause();
+      mainSprite.setFrame(0);
     }
   }, [facing, moving]);
 
