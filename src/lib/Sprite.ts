@@ -383,14 +383,19 @@ export function createDog2Sprite(
 
 /**
  * Preset grid config for `assets/bond-walk-forward.png`: a dedicated
- * forward-walk sheet, separate from bond-sprite.png. The source art
- * (`walk_forward_sheet_trimmed.png`) has 4 frames, but the outer two
- * (full paw extended out to the side) read poorly at game scale, so only
- * the middle two (a subtler single-paw lift, left then right) were kept.
- * Each is exactly 145px wide pre-crop, so they were sliced directly (no
- * recentering needed) into this uniform 2x1 grid, 145x206 px per frame.
+ * forward-walk sheet, separate from bond-sprite.png. Built from frames 3
+ * and 4 of `walk_forward_sheet_trimmed.png` — the only pair that keeps
+ * the tail on the right throughout (frames 1-2 have it on the left;
+ * mixing sides made the tail visibly flip during the walk cycle and on
+ * the idle<->walk transition, since the bond-sprite.png avatar's tail
+ * sits on the right). Each frame's dog content was also rescaled and
+ * bottom-anchored to match the avatar's content height (148px) and
+ * bottom margin (8px) within a 230x190 cell — matching DOG2_GRID's cell
+ * size exactly — so the shared scale-to-fit draw logic in BondSprite
+ * renders both sprites at the same apparent size instead of the walk
+ * frame appearing larger (it previously used a taller/narrower cell).
  */
-const BOND_WALK_FORWARD_GRID = { frameWidth: 145, frameHeight: 206, columns: 2, rows: 1 } as const;
+const BOND_WALK_FORWARD_GRID = { frameWidth: 230, frameHeight: 190, columns: 2, rows: 1 } as const;
 
 export const BOND_WALK_FORWARD_SHEET: SpriteSheetConfig = {
   ...BOND_WALK_FORWARD_GRID,
