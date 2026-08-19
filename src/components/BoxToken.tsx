@@ -1,14 +1,21 @@
 import { cn } from "@/lib/utils";
-import { CELL_SIZE_PX, CELL_STEP_PX } from "@/game/constants";
 
 export function BoxToken({ r, c, onGoal }: { r: number; c: number; onGoal: boolean }) {
   return (
     <div
       className="token token--box"
       style={{
-        width: CELL_SIZE_PX,
-        height: CELL_SIZE_PX,
-        transform: `translate(${c * CELL_STEP_PX}px, ${r * CELL_STEP_PX}px)`,
+        width: "var(--cell-size)",
+        height: "var(--cell-size)",
+        // 100% is the token's own width, which already tracks --cell-size, so
+        // the offset re-resolves when the board rescales. Referencing
+        // --cell-size directly would not: a transform holding var() is not
+        // recomputed when that custom property changes, leaving tokens
+        // stranded at their old pixel offsets after a resize.
+        transform: `translate(
+          calc(${c} * (100% + var(--cell-gap))),
+          calc(${r} * (100% + var(--cell-gap)))
+        )`,
       }}
     >
       <div className={cn("crate", onGoal && "crate--on-goal")}>

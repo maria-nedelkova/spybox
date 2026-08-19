@@ -1,4 +1,10 @@
-const STORAGE_PREFIX = "spybox:best:";
+/**
+ * Bump the generation whenever the level layouts change. Records are keyed by
+ * level name, and the names outlived the v1 grids — without this, anyone who
+ * had played before would be stuck looking at a best score set on a different
+ * (much easier) level, which the redesigned one can never beat.
+ */
+const STORAGE_PREFIX = "spybox:best:v2:";
 
 export interface KeyValueStore {
   getItem(key: string): string | null;

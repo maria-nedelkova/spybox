@@ -3,8 +3,11 @@
   --table: #14181d;
   --panel: #10131a;
   --panel-border: #33404f;
-  --wall: #1e2530;
-  --wall-edge: #3a4757;
+  /* Walls sit clearly above the floor tone: the levels use interior walls,
+     corridors and alcoves as the actual puzzle, so the layout has to read
+     at a glance rather than being a near-black-on-black texture. */
+  --wall: #2f3a49;
+  --wall-edge: #4a5b70;
   --floor: #1a2028;
   --goal-ring: #d4af6a;
   --box: #8a7250;
@@ -17,9 +20,11 @@
   --muted: #7c8a9a;
   --accent: #cf3b3b;
 
-  /* px fallback for browsers without custom-property arithmetic in grid-template.
-     Must match CELL_SIZE_PX / CELL_GAP_PX in game/constants.ts. */
+  /* Board.tsx overrides --cell-size per level so tall/wide grids shrink to
+     fit the viewport. Terrain cells and the absolutely-positioned tokens both
+     derive from these two vars, so they can never drift out of alignment. */
   --cell-size: 56px;
+  --cell-gap: 2px;
   --font-display: "Press Start 2P", monospace;
 }
 
@@ -91,7 +96,7 @@ body {
 
 .board__terrain {
   display: grid;
-  gap: 2px;
+  gap: var(--cell-gap);
 }
 
 .board__tokens {

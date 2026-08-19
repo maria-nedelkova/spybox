@@ -1,6 +1,5 @@
 import { Avatar } from "@/components/Avatar";
 import type { CharacterId } from "@/game/characters";
-import { CELL_SIZE_PX, CELL_STEP_PX } from "@/game/constants";
 import type { Direction } from "@/game/types";
 
 export function PlayerToken({
@@ -20,9 +19,14 @@ export function PlayerToken({
     <div
       className="token token--player"
       style={{
-        width: CELL_SIZE_PX,
-        height: CELL_SIZE_PX,
-        transform: `translate(${c * CELL_STEP_PX}px, ${r * CELL_STEP_PX}px)`,
+        width: "var(--cell-size)",
+        height: "var(--cell-size)",
+        // Percentage of the token's own width, not var(--cell-size) — see the
+        // note in BoxToken about transforms not recomputing on var changes.
+        transform: `translate(
+          calc(${c} * (100% + var(--cell-gap))),
+          calc(${r} * (100% + var(--cell-gap)))
+        )`,
       }}
     >
       <Avatar character={character} facing={facing} moving={moving} className="token__avatar" />

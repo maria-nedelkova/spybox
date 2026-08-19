@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { BoxToken } from "@/components/BoxToken";
 import { Cell, type TerrainKind } from "@/components/Cell";
 import { PlayerToken } from "@/components/PlayerToken";
@@ -27,8 +28,13 @@ export function Board({
   const rows = Array.from({ length: level.height }, (_, r) => r);
   const cols = Array.from({ length: level.width }, (_, c) => c);
 
+  // Shrink the cells (never past 56px) so even the tallest level fits without
+  // scrolling. The reserved height covers the title, level picker, briefing,
+  // HUD and touch controls stacked around the board.
+  const cellSize = `min(56px, (100vw - 40px) / ${level.width}, (100vh - 400px) / ${level.height})`;
+
   return (
-    <div className="board">
+    <div className="board" style={{ "--cell-size": cellSize } as CSSProperties}>
       <div
         className="board__terrain"
         style={{ gridTemplateColumns: `repeat(${level.width}, var(--cell-size))` }}
