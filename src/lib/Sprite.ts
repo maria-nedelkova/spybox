@@ -298,12 +298,20 @@ export class Sprite {
 
 /**
  * Preset grid configs for the included `assets/anya-sprite.png` sheet:
- * a 4x4 grid, 232x248 px per frame, packing three animations:
+ * a 4x5 grid, 232x248 px per frame, packing three animations:
  *  - an 8-frame 3/4-view run cycle (rows 0-1)
  *  - a 4-frame back-facing walk (row 2)
- *  - a 4-frame front-facing walk (row 3)
+ *  - a 5-frame front-facing walk (row 3 plus the first cell of row 4):
+ *    a neutral standing frame followed by the four stride frames, so the
+ *    cycle rests on two feet instead of freezing mid-stride when idle.
+ *    Row 4's remaining three cells are empty.
+ *
+ * The standing frame is the only new art here — it came from a separate
+ * 6-frame strip whose other frames were pixel-identical to the stride
+ * frames already in this sheet, so the sheet grew by one row rather than
+ * being replaced.
  */
-const PINKGIRL2_GRID = { frameWidth: 232, frameHeight: 248, columns: 4, rows: 4 } as const;
+const PINKGIRL2_GRID = { frameWidth: 232, frameHeight: 248, columns: 4, rows: 5 } as const;
 
 export const PINKGIRL2_RUN_SHEET: SpriteSheetConfig = {
   ...PINKGIRL2_GRID,
@@ -319,7 +327,7 @@ export const PINKGIRL2_WALK_BACK_SHEET: SpriteSheetConfig = {
 
 export const PINKGIRL2_WALK_FRONT_SHEET: SpriteSheetConfig = {
   ...PINKGIRL2_GRID,
-  frameCount: 4,
+  frameCount: 5,
   startFrame: 12,
 };
 
