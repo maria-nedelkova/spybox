@@ -11,6 +11,12 @@
  * above that, and the boards are small on purpose: the length comes from
  * untangling crates, not from hauling them across open floor.
  *
+ * The run from Stairwell onwards is the hard tail: obstacle-dense rooms of
+ * 4-6 crates where interaction reaches 5.75 and almost every reachable
+ * position is already lost. Those were found by hill-climbing crate and goal
+ * placements against the score, since placing them by hand rarely produced
+ * anything that scored well.
+ *
  * Every level is also a different room shape from its neighbours — a pillar
  * grid, a T-junction, a comb, a ring, diagonal walls — so no two consecutive
  * levels are the same puzzle at a different size.
@@ -170,7 +176,7 @@ export const LEVELS: readonly LevelSource[] = [
   },
   {
     name: "Split Cell",
-    briefing: "Last mission. Two cells, one gap between them, and every crate needs both.",
+    briefing: "Two cells, one gap between them, and every crate needs both.",
     rows: [
       "##########",
       "#    #   #",
@@ -178,6 +184,94 @@ export const LEVELS: readonly LevelSource[] = [
       "#  .  $  #",
       "#    #   #",
       "#    # . #",
+      "##########",
+    ],
+  },
+  {
+    name: "Stairwell",
+    briefing: "Six crates on a staircase. There is almost no floor left to manoeuvre in.",
+    rows: [
+      "#########",
+      "#      ##",
+      "#$$ @ ###",
+      "#.$$ ####",
+      "#.$    .#",
+      "#  $ ...#",
+      "#########",
+    ],
+  },
+  {
+    name: "Chequerboard",
+    briefing: "Pillars on every other square. Plenty of moves here, and most of them lose.",
+    rows: [
+      "#########",
+      "#..@    #",
+      "#$# # # #",
+      "# $.$   #",
+      "#.#$#$# #",
+      "#    .  #",
+      "#########",
+    ],
+  },
+  {
+    name: "Corner Office",
+    briefing: "Five crates jammed into an L. Freeing one usually buries the next.",
+    rows: [
+      "#########",
+      "#   #####",
+      "#   #####",
+      "# $$ @  #",
+      "#$$.$   #",
+      "#.   ...#",
+      "#########",
+    ],
+  },
+  {
+    name: "Holding Area",
+    briefing: "Only one crate can move at all to begin with. Work out which, and why.",
+    rows: [
+      "##########",
+      "#.#.#.#  #",
+      "#.  $$$  #",
+      "# #$# #  #",
+      "#  . $  @#",
+      "##########",
+    ],
+  },
+  {
+    name: "Watchtower",
+    briefing: "Six crates, four exits, and a pillar dead in the middle of the room.",
+    rows: [
+      "#########",
+      "## ###@##",
+      "#    $..#",
+      "#   #$$$#",
+      "# $. .$.#",
+      "## ###.##",
+      "#########",
+    ],
+  },
+  {
+    name: "Sawtooth",
+    briefing: "Teeth along both walls. Every crate has to be walked past three of them.",
+    rows: [
+      "##########",
+      "# # # # .#",
+      "#   $.$  #",
+      "#    $ $.#",
+      "# # #.# @#",
+      "##########",
+    ],
+  },
+  {
+    name: "The Lockup",
+    briefing: "Last mission. Four crates, four slots, and barely a square to spare.",
+    rows: [
+      "##########",
+      "#.#  # #.#",
+      "#  .$$.$@#",
+      "#     $  #",
+      "# # #  # #",
       "##########",
     ],
   },
