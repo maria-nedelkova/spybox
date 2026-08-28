@@ -14,7 +14,7 @@ export function Avatar({
   character: CharacterId;
   facing?: Direction;
   moving?: boolean;
-  /** Character-select-only static pose (currently only affects Bond's sitting frame). */
+  /** Character-select-only static pose — Bond and Mr. Chimera each have a seated frame. */
   portrait?: boolean;
   className?: string;
 }) {
@@ -25,5 +25,7 @@ export function Avatar({
     return <BondSprite facing={facing} moving={moving} portrait={portrait} className={className} />;
   }
 
-  return <ChimeraSprite facing={facing} moving={moving} className={className} />;
+  return (
+    <ChimeraSprite facing={facing} moving={moving} portrait={portrait} className={className} />
+  );
 }

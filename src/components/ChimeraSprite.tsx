@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import chimeraSpriteSheet from "@/assets/chimera-sprite.png";
 import {
+  CHIMERA_SIT_SHEET,
   CHIMERA_WALK_BACKWARD_SHEET,
   CHIMERA_WALK_FORWARD_SHEET,
   CHIMERA_WALK_LEFT_SHEET,
@@ -35,15 +36,19 @@ function animationFor(direction: Direction): ChimeraWalkAnimation {
 export function ChimeraSprite({
   facing,
   moving,
+  portrait = false,
   className,
 }: {
   facing: Direction;
   moving: boolean;
+  portrait?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spriteRef = useRef<Sprite | null>(null);
-  const animRef = useRef<ChimeraWalkAnimation>("walkForward");
+  // null while showing the seated portrait, so returning to a walk animation
+  // always re-applies its sheet rather than assuming one is already loaded.
+  const animRef = useRef<ChimeraWalkAnimation | null>("walkForward");
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -96,6 +101,17 @@ export function ChimeraSprite({
     const sprite = spriteRef.current;
     if (!sprite) return;
 
+    // The seated pose is reserved for the character-select portrait; in game
+    // the chimera stands (walkForward frame 0) rather than sitting down
+    // between moves.
+    if (portrait) {
+      animRef.current = null;
+      sprite.setAnimation(CHIMERA_SIT_SHEET, { fps: 8 });
+      sprite.pause();
+      sprite.setFrame(0);
+      return;
+    }
+
     const anim = animationFor(facing);
     if (animRef.current !== anim) {
       animRef.current = anim;
@@ -108,7 +124,7 @@ export function ChimeraSprite({
       sprite.pause();
       sprite.setFrame(0);
     }
-  }, [facing, moving]);
+  }, [facing, moving, portrait]);
 
   return <canvas ref={canvasRef} className={className} style={{ display: "block" }} />;
 }

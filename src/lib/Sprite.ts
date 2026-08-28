@@ -409,23 +409,33 @@ export function createBondWalkForwardSprite(imageSrc: string, options?: SpriteAn
 }
 
 /**
- * Preset grid configs for the included `assets/chimera-sprite.png` sheet:
- * a 4x5 grid, 230x250 px per frame, packing:
- *  - Walk left (row 0, 4 frames)
- *  - Walk right (row 1, 4 frames)
- *  - Walk forward/down (row 2, 4 frames)
- *  - Walk backward/up (row 3, 3 frames — cell 4 of that row is unused/empty)
+ * Preset grid configs for the included `assets/chimera-sprite.png` sheet
+ * (re-exported 2026-08-28): a 4x5 grid, 230x250 px per frame, packing:
+ *  - Walk right (row 0, 4 frames) — faces screen right
+ *  - Walk left (row 1, 4 frames) — an exact mirror of row 0
+ *  - Walk forward/down (row 2, 4 frames), starting on a neutral standing frame
+ *  - Walk backward/up (row 3, 3 frames)
+ *  - Sit (row 3, cell 4) — a front-facing seated portrait for the character
+ *    select screen, not part of any walk cycle. This cell was empty in the
+ *    previous export.
  *  - Four single-frame poses (row 4): Jump, Die, Wink, Dizzy
  *
- * Verified by direct pixel inspection (segment scanning) to exactly match
- * this documented layout — unlike the dog sheet, no correction needed here.
+ * Rows 0 and 1 are swapped relative to the previous export, which had them
+ * mislabelled. Verified here by pixel inspection: the two rows are exact
+ * mirrors (identical opaque-pixel counts per column), and rendering row 0
+ * enlarged shows the muzzle pointing right. Colour-based heuristics are
+ * unreliable on this sheet — both the mane and the wings are teal, and the
+ * wings carry white highlights that read like eyes.
  */
 const CHIMERA_GRID = { frameWidth: 230, frameHeight: 250, columns: 4, rows: 5 } as const;
 
-export const CHIMERA_WALK_LEFT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 0 };
-export const CHIMERA_WALK_RIGHT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 4 };
+export const CHIMERA_WALK_RIGHT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 0 };
+export const CHIMERA_WALK_LEFT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 4 };
 export const CHIMERA_WALK_FORWARD_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 4, startFrame: 8 };
 export const CHIMERA_WALK_BACKWARD_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 3, startFrame: 12 };
+
+/** Seated portrait pose — character select only, mirroring Bond's avatar frame. */
+export const CHIMERA_SIT_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 15 };
 
 export const CHIMERA_JUMP_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 16 };
 export const CHIMERA_DIE_SHEET: SpriteSheetConfig = { ...CHIMERA_GRID, frameCount: 1, startFrame: 17 };
@@ -437,6 +447,7 @@ export type ChimeraAnimation =
   | "walkRight"
   | "walkForward"
   | "walkBackward"
+  | "sit"
   | "jump"
   | "die"
   | "wink"
@@ -447,6 +458,7 @@ const CHIMERA_ANIMATIONS: Record<ChimeraAnimation, SpriteSheetConfig> = {
   walkRight: CHIMERA_WALK_RIGHT_SHEET,
   walkForward: CHIMERA_WALK_FORWARD_SHEET,
   walkBackward: CHIMERA_WALK_BACKWARD_SHEET,
+  sit: CHIMERA_SIT_SHEET,
   jump: CHIMERA_JUMP_SHEET,
   die: CHIMERA_DIE_SHEET,
   wink: CHIMERA_WINK_SHEET,
@@ -459,7 +471,7 @@ const CHIMERA_ANIMATIONS: Record<ChimeraAnimation, SpriteSheetConfig> = {
  *
  *   sprite.setAnimation(CHIMERA_JUMP_SHEET, { loop: false });
  *
- * Single-pose animations (jump/die/wink/dizzy) have frameCount: 1, so
+ * Single-pose animations (sit/jump/die/wink/dizzy) have frameCount: 1, so
  * update() leaves them frozen on their one frame automatically.
  */
 export function createChimeraSprite(
@@ -467,10 +479,11 @@ export function createChimeraSprite(
   animation: ChimeraAnimation = "walkForward",
   options?: SpriteAnimationOptions
 ): Sprite {
-  const isPose = animation === "jump" || animation === "die" || animation === "wink" || animation === "dizzy";
-  return new Sprite(imageSrc, CHIMERA_ANIMATIONS[animation], {
+  const sheet = CHIMERA_ANIMATIONS[animation];
+  return new Sprite(imageSrc, sheet, {
     fps: 8,
-    loop: !isPose,
+    // Single-frame poses have nothing to cycle through.
+    loop: (sheet.frameCount ?? sheet.columns * sheet.rows) > 1,
     ...options,
   });
 }
