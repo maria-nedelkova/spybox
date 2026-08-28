@@ -60,8 +60,38 @@ export function solve(level: Level, maxStates = 200_000): SolveResult {
     }
   }
 
+  // Squares a box can still be saved from, found by "pulling" a box back from
+  // every goal (the reverse of a push: to undo box `from` -> `to`, both `from`
+  // and the square behind it must be floor, since the player stood there).
+  // Anything unreachable this way is a dead square — a box pushed onto it can
+  // never reach any goal, so those pushes are pruned. This is what keeps the
+  // wall-heavy later levels verifiable in reasonable time.
+  const live = new Uint8Array(size);
+  const pullQueue: number[] = [];
+  for (const k of level.goals) {
+    const g = cellIndex(k, width);
+    live[g] = 1;
+    pullQueue.push(g);
+  }
+  for (let head = 0; head < pullQueue.length; head++) {
+    const to = pullQueue[head]!;
+    for (let d = 0; d < 4; d++) {
+      const from = nbr[to * 4 + (d ^ 1)]!;
+      if (from < 0 || !floor[from] || live[from]) continue;
+      const behind = nbr[from * 4 + (d ^ 1)]!;
+      if (behind < 0 || !floor[behind]) continue;
+      live[from] = 1;
+      pullQueue.push(from);
+    }
+  }
+
   const startBoxes = [...level.boxesStart].map((k) => cellIndex(k, width)).sort((a, b) => a - b);
   const playerStart = level.playerStart.r * width + level.playerStart.c;
+
+  // A box that starts on a dead square can never be recovered.
+  for (const box of startBoxes) {
+    if (!live[box]) return { solvable: false, states: 0, exhausted: false };
+  }
 
   // parseLevel guarantees boxes.length === goals.size, so "every box is on a
   // goal" is equivalent to "every goal is filled".
@@ -131,6 +161,7 @@ export function solve(level: Level, maxStates = 200_000): SolveResult {
       for (let d = 0; d < 4; d++) {
         const dest = nbr[base + d]!;
         if (dest < 0 || !floor[dest] || boxMark[dest] === gen) continue;
+        if (!live[dest]) continue; // pushing there strands the box forever
         // To push the box toward `d`, the player must stand on the far side.
         const stand = nbr[base + (d ^ 1)]!;
         if (stand < 0 || reachMark[stand] !== gen) continue;

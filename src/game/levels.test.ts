@@ -3,7 +3,10 @@ import { parseLevel } from "./engine";
 import { LEVELS } from "./levels";
 import { solve } from "./solver";
 
-const solved = LEVELS.map(({ name, rows }) => ({ name, result: solve(parseLevel(name, rows)) }));
+const solved = LEVELS.map(({ name, rows }) => {
+  const level = parseLevel(name, rows);
+  return { name, boxes: level.boxesStart.size, result: solve(level) };
+});
 
 describe("LEVELS", () => {
   for (const { name, result } of solved) {
@@ -11,6 +14,13 @@ describe("LEVELS", () => {
       expect(result.solvable).toBe(true);
     });
   }
+
+  test("level names are unique", () => {
+    // Best scores are stored per level name, so a duplicate would make two
+    // different levels share (and overwrite) one record.
+    const names = LEVELS.map((l) => l.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
 
   test("difficulty ramps up monotonically", () => {
     // Labelled so a failure names the levels that are out of order.
@@ -21,10 +31,11 @@ describe("LEVELS", () => {
     expect(ramp).toEqual(ordered);
   });
 
-  test("no level is a trivial straight shove, and the finale is a real puzzle", () => {
-    const first = solved[0]!.result.pushes!;
-    const last = solved.at(-1)!.result.pushes!;
-    expect(first).toBeGreaterThanOrEqual(3);
-    expect(last).toBeGreaterThanOrEqual(20);
+  test("opens with a real two-crate puzzle and ends with a hard one", () => {
+    const first = solved[0]!;
+    const last = solved.at(-1)!;
+    expect(first.boxes).toBeGreaterThanOrEqual(2);
+    expect(first.result.pushes).toBeGreaterThanOrEqual(4);
+    expect(last.result.pushes).toBeGreaterThanOrEqual(45);
   });
 });
