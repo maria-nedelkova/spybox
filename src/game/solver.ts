@@ -199,6 +199,29 @@ function cellIndex(key: string, width: number): number {
 }
 
 /**
+ * Total cost of solving each crate on its own, with the others deleted.
+ *
+ * Dividing the real push count by this gives how much the crates actually
+ * interfere: a result near 1.0 means each crate walks to a goal untroubled by
+ * the rest, so the level is one easy sub-puzzle repeated N times — long to
+ * play, but never difficult. levels.ts is ordered on this, and levels.test.ts
+ * enforces a floor, because push count alone rewards big empty rooms.
+ *
+ * Returns Infinity if any crate cannot reach a goal even alone.
+ */
+export function soloPushSum(level: Level): number {
+  let total = 0;
+  for (const boxKey of level.boxesStart) {
+    // solve() wins once every crate sits on a goal; with a single crate that
+    // is exactly "this crate reached some goal", which is what we want here.
+    const r = solve({ ...level, boxesStart: new Set([boxKey]) });
+    if (!r.solvable) return Infinity;
+    total += r.pushes!;
+  }
+  return total;
+}
+
+/**
  * Validates that a hand-authored level can actually be finished before it
  * ships — see levels.test.ts.
  */

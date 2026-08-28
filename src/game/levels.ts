@@ -2,16 +2,21 @@
  * Level data as classic Sokoban ASCII grids (see the notation doc in
  * `engine.ts`). Hand-authored — not sourced from any existing level pack.
  *
- * Ordered by minimum push count, the difficulty metric the solver reports:
- * 5, 6, 7, 10, 12, 17, 19, 21, 22, 25, 26, 28, 28, 32, 33, 39, 48.
- * levels.test.ts checks every level is solvable and that the ramp stays
- * monotonic, so a level dropped into the wrong slot fails the suite.
+ * Ordering is by `pushes x interaction`, not by push count. Push count alone
+ * measures how *long* a level is: a wide room where each crate walks to its
+ * own goal scores highly while asking nothing of the player. `interaction` is
+ * the optimal push count divided by the sum of each crate solved alone (see
+ * solver.soloPushSum) — near 1.0 means the crates never get in each other's
+ * way, so the level is one easy sub-puzzle repeated. Every level here scores
+ * above that, and the boards are small on purpose: the length comes from
+ * untangling crates, not from hauling them across open floor.
  *
- * The designs lean on what makes Boxworld hard — narrow corridors, one-way
- * alcoves, single doorways and forced push order — rather than on open rooms
- * with more crates, which mostly add tedium. Four motifs recur at growing
- * scale: goal alcoves, a funnel through one doorway, a storage room fed
- * through a side door, and a walled inner room with a single exit.
+ * Every level is also a different room shape from its neighbours — a pillar
+ * grid, a T-junction, a comb, a ring, diagonal walls — so no two consecutive
+ * levels are the same puzzle at a different size.
+ *
+ * levels.test.ts enforces both the ordering and a minimum interaction, so a
+ * long-but-shallow level cannot slip back in.
  */
 export interface LevelSource {
   readonly name: string;
@@ -23,15 +28,7 @@ export const LEVELS: readonly LevelSource[] = [
   {
     name: "First Contact",
     briefing: "Two packages, two drop points. Neither one is straight ahead.",
-    rows: [
-      "#######",
-      "#     #",
-      "# $ $ #",
-      "#  #  #",
-      "# .  .#",
-      "#  @  #",
-      "#######",
-    ],
+    rows: ["#######", "#     #", "# $ $ #", "#  #  #", "# .  .#", "#  @  #", "#######"],
   },
   {
     name: "Double Agent",
@@ -63,6 +60,11 @@ export const LEVELS: readonly LevelSource[] = [
     ],
   },
   {
+    name: "Blind Spot",
+    briefing: "Three crates in a cross. The arm you fill first decides the other two.",
+    rows: ["#########", "###   ###", "### . ###", "#  $$$  #", "# .   . #", "###@  ###", "#########"],
+  },
+  {
     name: "Triple Cross",
     briefing: "Three parcels, three drops, one crossroads. Especially mind the middle one.",
     rows: [
@@ -90,6 +92,16 @@ export const LEVELS: readonly LevelSource[] = [
     ],
   },
   {
+    name: "Side Entrance",
+    briefing: "The drops sit behind a wall with two ways in. Only one of them helps.",
+    rows: ["#########", "#  ...  #", "# ### # #", "#   $   #", "# $   $ #", "#   @   #", "#########"],
+  },
+  {
+    name: "Filing Room",
+    briefing: "Narrow aisles, four crates. Park one wrong and the aisle is gone.",
+    rows: ["#########", "# #.   .#", "# #  # @#", "#  $ #  #", "# # $#$ #", "# #. $. #", "#########"],
+  },
+  {
     name: "Under Surveillance",
     briefing: "One checkpoint, and it only takes one package at a time. Clear it between runs.",
     rows: [
@@ -104,181 +116,69 @@ export const LEVELS: readonly LevelSource[] = [
     ],
   },
   {
-    name: "Safe House",
-    briefing: "Everything on the left has to come through the one side door. Mind the queue.",
+    name: "Perimeter Watch",
+    briefing: "Four crates orbiting a blockhouse. They only leave in the right order.",
+    rows: ["########", "# ..   #", "#  $$  #", "# #  # #", "#  $$  #", "#   .. #", "#  @   #", "########"],
+  },
+  {
+    name: "Colonnade",
+    briefing: "A hall full of pillars. Every crate has to thread between them.",
+    rows: ["#########", "# $.@  .#", "# #$# # #", "# $     #", "# # # #.#", "#       #", "#########"],
+  },
+  {
+    name: "Junction Box",
+    briefing: "Two rooms, one junction, and no room to turn a crate around inside it.",
+    rows: ["#########", "#   .   #", "#   $   #", "###.#.###", "#  $# $ #", "# @ #   #", "#########"],
+  },
+  {
+    name: "Cross Section",
+    briefing: "The walls run on the diagonal. Nothing lines up the way you expect.",
+    rows: [
+      "#########",
+      "#.$    .#",
+      "# #    $#",
+      "#  #  $ #",
+      "#$  #   #",
+      "#    # .#",
+      "# @ .   #",
+      "#########",
+    ],
+  },
+  {
+    name: "Five Fingers",
+    briefing: "Five crates in one small room. Most of your options here are mistakes.",
+    rows: [
+      "#########",
+      "###   ###",
+      "###   ###",
+      "#. $ .$ #",
+      "# $.@$  #",
+      "### . ###",
+      "###.$ ###",
+      "#########",
+    ],
+  },
+  {
+    name: "The Pit",
+    briefing: "Three crates stacked against a blockhouse, and the drops are the far corner.",
+    rows: ["########", "# .$   #", "# $  @ #", "# $##  #", "#  ##  #", "#      #", "#   .. #", "########"],
+  },
+  {
+    name: "Blind Alley",
+    briefing: "A notched room where the obvious push is almost always the losing one.",
+    rows: ["#########", "#.  #   #", "#  .#   #", "#  $    #", "#@ $#   #", "# .$    #", "#########"],
+  },
+  {
+    name: "Split Cell",
+    briefing: "Last mission. Two cells, one gap between them, and every crate needs both.",
     rows: [
       "##########",
-      "#   #    #",
-      "# $ #    #",
-      "#   #    #",
-      "# $   .. #",
-      "#   #    #",
-      "# $ # .  #",
-      "#   #    #",
-      "#  @#    #",
+      "#    #   #",
+      "# $$ # .@#",
+      "#  .  $  #",
+      "#    #   #",
+      "#    # . #",
       "##########",
-    ],
-  },
-  {
-    name: "Border Crossing",
-    briefing: "Same checkpoint trick, wider ground. The long way round is the only way.",
-    rows: [
-      "#############",
-      "#           #",
-      "# $ $ $     #",
-      "##### ##### #",
-      "#           #",
-      "# . . .     #",
-      "#     @     #",
-      "#############",
-    ],
-  },
-  {
-    name: "Cold Storage",
-    briefing: "A bigger room past the same door. Park a crate badly and it blocks the next one.",
-    rows: [
-      "############",
-      "#   #      #",
-      "# $ #      #",
-      "#   #      #",
-      "# $    ..  #",
-      "#   #      #",
-      "# $ #  .   #",
-      "#   #      #",
-      "#  @#      #",
-      "############",
-    ],
-  },
-  {
-    name: "The Warehouse",
-    briefing: "Three crates, one door, and a lot of floor between you and the marks.",
-    rows: [
-      "##############",
-      "#   #        #",
-      "# $ #        #",
-      "#   #        #",
-      "# $     ..   #",
-      "#   #        #",
-      "# $ #   .    #",
-      "#   #        #",
-      "#  @#        #",
-      "##############",
-    ],
-  },
-  {
-    name: "Inner Circle",
-    briefing: "The crates are sealed in a ring with one way out. Get behind them first.",
-    rows: [
-      "#############",
-      "#           #",
-      "# ######### #",
-      "# #       # #",
-      "# # $ $ $ # #",
-      "# #       # #",
-      "# ##### ### #",
-      "#           #",
-      "# . . .     #",
-      "#     @     #",
-      "#############",
-    ],
-  },
-  {
-    name: "The Long Way Round",
-    briefing: "Every package moves through the one central corridor. No shortcuts.",
-    rows: [
-      "##########",
-      "#   #    #",
-      "# $ # .  #",
-      "#   #    #",
-      "#  ###   #",
-      "# $   .  #",
-      "#  ###   #",
-      "#   #    #",
-      "# $ # .  #",
-      "#  @#    #",
-      "##########",
-    ],
-  },
-  {
-    name: "Bottleneck",
-    briefing: "Four crates, one gap in the wall. Only one gets through at a time.",
-    rows: [
-      "###########",
-      "#         #",
-      "# $ $ $ $ #",
-      "#### #### #",
-      "#         #",
-      "# . . . . #",
-      "#    @    #",
-      "###########",
-    ],
-  },
-  {
-    name: "Back Channel",
-    briefing: "The way out of the ring is nowhere near the drops. Plan the whole haul.",
-    rows: [
-      "###############",
-      "#             #",
-      "# ########### #",
-      "# #         # #",
-      "# # $  $  $ # #",
-      "# #         # #",
-      "# ### ####### #",
-      "#             #",
-      "#     .  .  . #",
-      "#      @      #",
-      "###############",
-    ],
-  },
-  {
-    name: "Deep Cover",
-    briefing: "The same central corridor, twice the ground to cover. Order matters more now.",
-    rows: [
-      "############",
-      "#   #      #",
-      "# $ #    . #",
-      "#   #      #",
-      "#  ###     #",
-      "# $      . #",
-      "#  ###     #",
-      "#   #      #",
-      "# $ #    . #",
-      "#  @#      #",
-      "############",
-    ],
-  },
-  {
-    name: "Sleeper Cell",
-    briefing: "Long hauls, one lane, and no room to turn a crate around once it's moving.",
-    rows: [
-      "##############",
-      "#   #        #",
-      "# $ #      . #",
-      "#   #        #",
-      "#  ###       #",
-      "# $        . #",
-      "#  ###       #",
-      "#   #        #",
-      "# $ #      . #",
-      "#  @#        #",
-      "##############",
-    ],
-  },
-  {
-    name: "Exfiltration",
-    briefing: "Last mission. Three crates, one gap in the ring, and the whole floor to cross.",
-    rows: [
-      "#####################",
-      "#                   #",
-      "# ################# #",
-      "# #               # #",
-      "# #  $    $    $  # #",
-      "# #               # #",
-      "# ############# ### #",
-      "#                   #",
-      "# .     .     .     #",
-      "#         @         #",
-      "#####################",
     ],
   },
 ];
