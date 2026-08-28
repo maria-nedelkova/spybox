@@ -441,19 +441,31 @@ export function createDog2Sprite(
  * (re-exported 2026-08-28): a 4x5 grid, 230x250 px per frame, packing:
  *  - Walk right (row 0, 4 frames) — faces screen right
  *  - Walk left (row 1, 4 frames) — an exact mirror of row 0
- *  - Walk forward/down (row 2, 4 frames), starting on a neutral standing frame
+ *  - Walk forward/down (row 2, 4 frames): standing, step, step, standing —
+ *    bookended so the cycle begins and ends on two feet rather than stopping
+ *    mid-stride. The two step frames use opposite paws. See the note below
+ *    about how frame 9 was recovered.
  *  - Walk backward/up (row 3, 3 frames)
  *  - Sit (row 3, cell 4) — a front-facing seated portrait for the character
  *    select screen, not part of any walk cycle. This cell was empty in the
  *    previous export.
  *  - Four single-frame poses (row 4): Jump, Die, Wink, Dizzy
  *
- * Rows 0 and 1 are swapped relative to the previous export, which had them
- * mislabelled. Verified here by pixel inspection: the two rows are exact
- * mirrors (identical opaque-pixel counts per column), and rendering row 0
- * enlarged shows the muzzle pointing right. Colour-based heuristics are
- * unreliable on this sheet — both the mane and the wings are teal, and the
- * wings carry white highlights that read like eyes.
+ * Rows 0 and 1 are swapped relative to the 2026-08-15 export, which had them
+ * mislabelled. Verified by pixel inspection: the two rows are exact mirrors
+ * (identical opaque-pixel counts per column), and rendering row 0 enlarged
+ * shows the muzzle pointing right. Colour-based heuristics are unreliable on
+ * this sheet — both the mane and the wings are teal, and the wings carry
+ * white highlights that read like eyes.
+ *
+ * Frame 9 does not come from the delivered export. That export's walk-forward
+ * row was standing/standing/step/standing — frames 8, 9 and 11 were pixel
+ * identical, so only one paw ever moved and the walk read as a twitch. The
+ * missing second step still existed as frame 9 of the previous export (same
+ * scale, same ground line), so this sheet is the delivered art with that one
+ * cell composited back in; every other cell is byte-identical to what was
+ * delivered. If a corrected export turns up, it can replace this wholesale —
+ * the re-encode also costs ~190KB over the original.
  */
 const CHIMERA_GRID = { frameWidth: 230, frameHeight: 250, columns: 4, rows: 5 } as const;
 
