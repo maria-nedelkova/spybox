@@ -42,6 +42,13 @@ export interface SpriteAnimationOptions {
   fps?: number;
   /** Whether the animation loops back to frame 0 when it finishes. Default: true. */
   loop?: boolean;
+  /**
+   * Play the frames forwards then backwards (0,1,2,3,2,1,0,...) instead of
+   * wrapping straight back to the start. Use this for cycles whose last
+   * frame doesn't flow into the first — hard-looping those snaps visibly at
+   * the wraparound. Endpoints are not repeated. Default: false.
+   */
+  pingpong?: boolean;
   /** Start playing immediately once the image has loaded. Default: true. */
   autoplay?: boolean;
 }
@@ -54,6 +61,28 @@ export interface SpriteDrawOptions {
   flipX?: boolean;
   /** Opacity, 0-1. Default: 1. */
   alpha?: number;
+}
+
+/** One step of frame sequencing. Pure, so it can be tested without a DOM. */
+export function advanceFrame(
+  current: number,
+  direction: number,
+  frameCount: number,
+  mode: { loop: boolean; pingpong: boolean },
+): { frame: number; direction: number; finished: boolean } {
+  const next = current + direction;
+
+  if (next >= frameCount) {
+    // Turn around without replaying the frame we're already on.
+    if (mode.pingpong) return { frame: Math.max(0, frameCount - 2), direction: -1, finished: false };
+    if (mode.loop) return { frame: 0, direction, finished: false };
+    return { frame: frameCount - 1, direction, finished: true };
+  }
+
+  // Only reachable mid-ping-pong; bounce back off frame 0.
+  if (next < 0) return { frame: Math.min(1, frameCount - 1), direction: 1, finished: false };
+
+  return { frame: next, direction, finished: false };
 }
 
 export class Sprite {
@@ -71,6 +100,9 @@ export class Sprite {
   private elapsed = 0; // seconds accumulated toward the next frame
   private playing: boolean;
   private loop: boolean;
+  private pingpong: boolean;
+  /** +1 while advancing, -1 while retreating through a ping-pong cycle. */
+  private direction = 1;
   private onFrameChange: ((frame: number) => void) | null = null;
   private onComplete: (() => void) | null = null;
 
@@ -84,6 +116,7 @@ export class Sprite {
     const fps = options.fps ?? 12;
     this.frameDuration = 1 / fps;
     this.loop = options.loop ?? true;
+    this.pingpong = options.pingpong ?? false;
     this.playing = options.autoplay ?? true;
 
     this.image = new Image();
@@ -140,10 +173,12 @@ export class Sprite {
 
     if (options.fps !== undefined) this.setFps(options.fps);
     if (options.loop !== undefined) this.loop = options.loop;
+    if (options.pingpong !== undefined) this.pingpong = options.pingpong;
     this.playing = options.autoplay ?? this.playing;
 
     this.currentFrame = 0;
     this.elapsed = 0;
+    this.direction = 1;
   }
 
   /** Resume/start playback. */
@@ -167,6 +202,7 @@ export class Sprite {
   setFrame(index: number): void {
     this.currentFrame = Math.max(0, Math.min(this.frameCount - 1, index));
     this.elapsed = 0;
+    this.direction = 1;
   }
 
   /** Change playback speed in frames per second. */
@@ -200,19 +236,18 @@ export class Sprite {
 
     while (this.elapsed >= this.frameDuration) {
       this.elapsed -= this.frameDuration;
-      const next = this.currentFrame + 1;
 
-      if (next >= this.frameCount) {
-        if (this.loop) {
-          this.currentFrame = 0;
-        } else {
-          this.currentFrame = this.frameCount - 1;
-          this.playing = false;
-          this.onComplete?.();
-          break;
-        }
-      } else {
-        this.currentFrame = next;
+      const step = advanceFrame(this.currentFrame, this.direction, this.frameCount, {
+        loop: this.loop,
+        pingpong: this.pingpong,
+      });
+      this.currentFrame = step.frame;
+      this.direction = step.direction;
+
+      if (step.finished) {
+        this.playing = false;
+        this.onComplete?.();
+        break;
       }
 
       this.onFrameChange?.(this.currentFrame);
@@ -312,31 +347,32 @@ export function createPinkGirl2Sprite(
 
 /**
  * Preset grid configs for the included `assets/bond-sprite.png` sheet
- * (re-exported 2026-08-15 with a corrected Right row): a 4x4 grid,
- * 230x190 px per frame, packing four movement animations (an "Attack"
- * row from the source sheet was left out):
- *  - Forward/sit (row 0, 4 frames) — a front-facing sit-and-wave, not a
- *    walk cycle. Only frame 0 (paws still) is used from this row now —
- *    as the static idle/avatar pose (character-select + resting between
- *    moves). The forward *walk* animation comes from a separate
- *    dedicated sheet (see BOND_WALK_FORWARD_SHEET below); frames 1-3 of
- *    this row are unused now.
+ * (re-exported 2026-08-28): a 4x5 grid, 230x230 px per frame — note the
+ * taller cell than earlier exports — packing:
+ *  - Forward (row 0, 4 frames) — a front-facing standing idle. The dog is
+ *    symmetric with all four paws down, bobbing slightly; frames 0 and 3
+ *    are identical bookends and 1-2 settle progressively lower. This
+ *    replaces the old sit-and-wave art, which read as a one-sided raised
+ *    paw rather than movement, and retires the separate
+ *    `bond-walk-forward.png` sheet that previously stood in for it.
  *  - Backward (row 1, 4 frames)
- *  - Left (row 2) — 3 valid left-facing walk frames (flat 8-10); cell 11
- *    is empty in this export.
- *  - Right (row 3) — 3 valid right-facing walk frames (flat 12-14); cell
- *    15 is empty. (An earlier export of this sheet had Right broken to a
- *    single usable frame — this one fixes that.)
+ *  - Left (row 2, 3 frames — cell 11 empty)
+ *  - Right (row 3, 3 frames — cell 15 empty), the Left frames mirrored
+ *  - Avatars (row 4): sitting at 16, standing at 17; cells 18-19 empty
  *
- * Verified by direct pixel inspection (segment scanning). Left and Right
- * are separately-drawn art, not mirror images of each other — no flipX
- * needed.
+ * None of the rows is a closed loop, so `createDog2Sprite` ping-pongs them
+ * (see SpriteAnimationOptions.pingpong) — hard-looping snaps at the wrap.
+ *
+ * Verified by direct pixel inspection: per-cell opaque-pixel counts confirm
+ * the empty cells, that frames 0/3 of Forward are identical, that Right's
+ * frames match Left's exactly (mirrored), and that avatar frame 17 is the
+ * same standing pose as Forward frame 0.
  */
-const DOG2_GRID = { frameWidth: 230, frameHeight: 190, columns: 4, rows: 4 } as const;
+const DOG2_GRID = { frameWidth: 230, frameHeight: 230, columns: 4, rows: 5 } as const;
 
-export const DOG2_FORWARD_IDLE_SHEET: SpriteSheetConfig = {
+export const DOG2_FORWARD_SHEET: SpriteSheetConfig = {
   ...DOG2_GRID,
-  frameCount: 1,
+  frameCount: 4,
   startFrame: 0,
 };
 
@@ -358,10 +394,23 @@ export const DOG2_RIGHT_SHEET: SpriteSheetConfig = {
   startFrame: 12,
 };
 
+/** Static portrait poses — character select only, never part of a walk cycle. */
+export const DOG2_AVATAR_SITTING_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 1,
+  startFrame: 16,
+};
+
+export const DOG2_AVATAR_STANDING_SHEET: SpriteSheetConfig = {
+  ...DOG2_GRID,
+  frameCount: 1,
+  startFrame: 17,
+};
+
 export type Dog2Direction = "forward" | "backward" | "left" | "right";
 
 const DOG2_ANIMATIONS: Record<Dog2Direction, SpriteSheetConfig> = {
-  forward: DOG2_FORWARD_IDLE_SHEET,
+  forward: DOG2_FORWARD_SHEET,
   backward: DOG2_BACKWARD_SHEET,
   left: DOG2_LEFT_SHEET,
   right: DOG2_RIGHT_SHEET,
@@ -369,7 +418,8 @@ const DOG2_ANIMATIONS: Record<Dog2Direction, SpriteSheetConfig> = {
 
 /**
  * Convenience factory for the bundled pink dog movement sheet. Defaults to
- * facing forward; switch directions later with e.g.:
+ * facing forward, and to ping-pong playback since none of the rows loop
+ * cleanly; switch directions later with e.g.:
  *
  *   sprite.setAnimation(DOG2_LEFT_SHEET, { fps: 8 });
  */
@@ -378,34 +428,12 @@ export function createDog2Sprite(
   direction: Dog2Direction = "forward",
   options?: SpriteAnimationOptions
 ): Sprite {
-  return new Sprite(imageSrc, DOG2_ANIMATIONS[direction], { fps: 8, loop: true, ...options });
-}
-
-/**
- * Preset grid config for `assets/bond-walk-forward.png`: a dedicated
- * forward-walk sheet, separate from bond-sprite.png. Built from frames 3
- * and 4 of `walk_forward_sheet_trimmed.png` — the only pair that keeps
- * the tail on the right throughout (frames 1-2 have it on the left;
- * mixing sides made the tail visibly flip during the walk cycle and on
- * the idle<->walk transition, since the bond-sprite.png avatar's tail
- * sits on the right). Each frame's dog content was also rescaled and
- * bottom-anchored to match the avatar's content height (148px) and
- * bottom margin (8px) within a 230x190 cell — matching DOG2_GRID's cell
- * size exactly — so the shared scale-to-fit draw logic in BondSprite
- * renders both sprites at the same apparent size instead of the walk
- * frame appearing larger (it previously used a taller/narrower cell).
- */
-const BOND_WALK_FORWARD_GRID = { frameWidth: 230, frameHeight: 190, columns: 2, rows: 1 } as const;
-
-export const BOND_WALK_FORWARD_SHEET: SpriteSheetConfig = {
-  ...BOND_WALK_FORWARD_GRID,
-  frameCount: 2,
-  startFrame: 0,
-};
-
-/** Convenience factory for the dedicated Bond forward-walk sheet. */
-export function createBondWalkForwardSprite(imageSrc: string, options?: SpriteAnimationOptions): Sprite {
-  return new Sprite(imageSrc, BOND_WALK_FORWARD_SHEET, { fps: 8, loop: true, ...options });
+  return new Sprite(imageSrc, DOG2_ANIMATIONS[direction], {
+    fps: 8,
+    loop: true,
+    pingpong: true,
+    ...options,
+  });
 }
 
 /**

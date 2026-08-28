@@ -1,11 +1,10 @@
 import { useLayoutEffect, useRef } from "react";
 import bondSpriteSheet from "@/assets/bond-sprite.png";
-import bondWalkForwardSheet from "@/assets/bond-walk-forward.png";
 import {
-  createBondWalkForwardSprite,
   createDog2Sprite,
+  DOG2_AVATAR_SITTING_SHEET,
   DOG2_BACKWARD_SHEET,
-  DOG2_FORWARD_IDLE_SHEET,
+  DOG2_FORWARD_SHEET,
   DOG2_LEFT_SHEET,
   DOG2_RIGHT_SHEET,
   type Sprite,
@@ -13,9 +12,16 @@ import {
 } from "@/lib/Sprite";
 import type { Direction } from "@/game/types";
 
-type AnimKey = "forward" | "backward" | "left" | "right";
+type WalkAnimation = "forward" | "backward" | "left" | "right";
 
-function animKeyFor(direction: Direction): AnimKey {
+const SHEETS: Record<WalkAnimation, SpriteSheetConfig> = {
+  forward: DOG2_FORWARD_SHEET,
+  backward: DOG2_BACKWARD_SHEET,
+  left: DOG2_LEFT_SHEET,
+  right: DOG2_RIGHT_SHEET,
+};
+
+function animationFor(direction: Direction): WalkAnimation {
   switch (direction) {
     case "up":
       return "backward";
@@ -27,16 +33,6 @@ function animKeyFor(direction: Direction): AnimKey {
       return "right";
   }
 }
-
-// "forward" (both standing-still and walking) is drawn from the dedicated
-// walk-forward sprite/image; everything else comes from the shared
-// bond-sprite.png sheet. The sitting DOG2_FORWARD_IDLE_SHEET pose is reserved
-// for the character-select screen (portrait mode) only — see below.
-const MAIN_SHEETS: Partial<Record<AnimKey, SpriteSheetConfig>> = {
-  backward: DOG2_BACKWARD_SHEET,
-  left: DOG2_LEFT_SHEET,
-  right: DOG2_RIGHT_SHEET,
-};
 
 export function BondSprite({
   facing,
@@ -50,22 +46,18 @@ export function BondSprite({
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mainSpriteRef = useRef<Sprite | null>(null);
-  const walkForwardSpriteRef = useRef<Sprite | null>(null);
-  const animKeyRef = useRef<AnimKey>("forward");
-  const portraitRef = useRef(portrait);
-  portraitRef.current = portrait;
+  const spriteRef = useRef<Sprite | null>(null);
+  // null while showing the seated portrait, so returning to a walk animation
+  // always re-applies its sheet rather than assuming one is already loaded.
+  const animRef = useRef<WalkAnimation | null>("forward");
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const mainSprite = createDog2Sprite(bondSpriteSheet, "forward", { fps: 8 });
-    mainSprite.setAnimation(DOG2_FORWARD_IDLE_SHEET);
-    mainSpriteRef.current = mainSprite;
-
-    const walkForwardSprite = createBondWalkForwardSprite(bondWalkForwardSheet, { fps: 8, autoplay: false });
-    walkForwardSpriteRef.current = walkForwardSprite;
+    const sprite = createDog2Sprite(bondSpriteSheet, "forward", { fps: 8 });
+    sprite.pause();
+    spriteRef.current = sprite;
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -86,18 +78,15 @@ export function BondSprite({
     function loop(now: number) {
       const dt = (now - last) / 1000;
       last = now;
-
-      const active =
-        !portraitRef.current && animKeyRef.current === "forward" ? walkForwardSprite : mainSprite;
-      active.update(dt);
+      sprite.update(dt);
 
       const ctx = canvas?.getContext("2d");
       if (ctx && canvas && canvas.width > 0 && canvas.height > 0) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const scale = Math.min(canvas.width / active.width, canvas.height / active.height);
-        const w = active.width * scale;
-        const h = active.height * scale;
-        active.draw(ctx, (canvas.width - w) / 2, (canvas.height - h) / 2, { scale });
+        const scale = Math.min(canvas.width / sprite.width, canvas.height / sprite.height);
+        const w = sprite.width * scale;
+        const h = sprite.height * scale;
+        sprite.draw(ctx, (canvas.width - w) / 2, (canvas.height - h) / 2, { scale });
       }
       raf = requestAnimationFrame(loop);
     }
@@ -110,42 +99,30 @@ export function BondSprite({
   }, []);
 
   useLayoutEffect(() => {
-    const mainSprite = mainSpriteRef.current;
-    const walkForwardSprite = walkForwardSpriteRef.current;
-    if (!mainSprite || !walkForwardSprite) return;
+    const sprite = spriteRef.current;
+    if (!sprite) return;
 
+    // The seated pose is reserved for the character-select portrait; in game
+    // Bond stands (forward frame 0) rather than sitting down between moves.
     if (portrait) {
-      animKeyRef.current = "forward";
-      mainSprite.setAnimation(DOG2_FORWARD_IDLE_SHEET, { fps: 8 });
-      mainSprite.pause();
-      mainSprite.setFrame(0);
-      walkForwardSprite.pause();
+      animRef.current = null;
+      sprite.setAnimation(DOG2_AVATAR_SITTING_SHEET, { fps: 8 });
+      sprite.pause();
+      sprite.setFrame(0);
       return;
     }
 
-    const key = animKeyFor(facing);
-    const keyChanged = animKeyRef.current !== key;
-    animKeyRef.current = key;
-
-    if (key === "forward") {
-      if (keyChanged) walkForwardSprite.setFrame(0);
-      if (moving) walkForwardSprite.play();
-      else {
-        walkForwardSprite.pause();
-        walkForwardSprite.setFrame(0);
-      }
-      return;
+    const anim = animationFor(facing);
+    if (animRef.current !== anim) {
+      animRef.current = anim;
+      sprite.setAnimation(SHEETS[anim], { fps: 8 });
     }
 
-    const sheet = MAIN_SHEETS[key];
-    if (keyChanged && sheet) {
-      mainSprite.setAnimation(sheet, { fps: 8 });
-    }
     if (moving) {
-      mainSprite.play();
+      sprite.play();
     } else {
-      mainSprite.pause();
-      mainSprite.setFrame(0);
+      sprite.pause();
+      sprite.setFrame(0);
     }
   }, [facing, moving, portrait]);
 
