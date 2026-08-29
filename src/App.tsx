@@ -72,13 +72,16 @@ export function App() {
 
   return (
     <div className="app">
-      <h1 className="title">SPYBOX</h1>
-      <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={goToLevel} />
+      <div className="app__header">
+        <h1 className="title">SPYBOX</h1>
+        <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={goToLevel} />
+      </div>
       <p className="briefing">{briefing}</p>
       <TopBar
         levelName={level.name}
         moves={state.moves}
         pushes={state.pushes}
+        character={character}
         canUndo={canUndo}
         muted={muted}
         onUndo={undo}
@@ -95,8 +98,13 @@ export function App() {
       />
       <TouchControls onMove={applyMove} />
       {won && (
-        <div className="win-banner">
-          <p>{hasNextLevel ? "Level cleared." : "Mission accomplished — all levels cleared!"}</p>
+        // Overlaid rather than stacked under the board: adding a block to the
+        // flow after the board is measured would push the touch controls past
+        // the bottom of the viewport.
+        <div className="win-banner" role="status">
+          <p className="win-banner__headline">
+            {hasNextLevel ? "Level cleared." : "Mission accomplished — all levels cleared!"}
+          </p>
           {scoreResult && (
             <p className="win-banner__score">
               {scoreResult.isNewBest ? "New best: " : "Best: "}
