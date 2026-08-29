@@ -91,6 +91,9 @@ export function App() {
           onSwitchAgent={() => setCharacter(null)}
         />
 
+        {/* The controls sit outside this row on purpose: inside it, the menu
+            and rail would centre against board-plus-controls rather than
+            against the board itself. */}
         <div className="layout__stage">
           <Board
             level={level}
@@ -99,7 +102,6 @@ export function App() {
             facing={facing}
             moving={isMoving}
           />
-          <TouchControls onMove={applyMove} />
         </div>
 
         <MissionPanel
@@ -113,6 +115,8 @@ export function App() {
           onSelectLevel={goToLevel}
         />
       </div>
+
+      <TouchControls onMove={applyMove} />
 
       {won && (
         // Overlaid rather than stacked under the board: adding a block to the

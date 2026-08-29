@@ -17,8 +17,8 @@
      derive from these two vars, so they can never drift out of alignment. */
   --cell-size: 56px;
   --cell-gap: 2px;
-  --menu-width: 14rem;
-  --rail-width: 19.5rem;
+  --menu-width: 17rem;
+  --rail-width: 17rem;
   --font-display: "Press Start 2P", monospace;
 }
 
@@ -102,9 +102,9 @@ body {
    counters change width. */
 .layout {
   display: grid;
-  grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--rail-width);
-  align-items: start;
-  gap: 1.5rem;
+  grid-template-columns: var(--menu-width) minmax(0, 1fr) var(--rail-width);
+  align-items: center;
+  gap: 1.5rem 4rem;
   width: 100%;
   max-width: 88rem;
 }
@@ -128,8 +128,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: var(--menu-width);
-  justify-self: center;
+  width: 100%;
 }
 
 .menu__item {

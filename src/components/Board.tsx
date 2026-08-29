@@ -60,7 +60,8 @@ export function Board({
       const stage = el.parentElement;
       const app = el.closest(".app");
       const title = app?.querySelector<HTMLElement>(".title");
-      const controls = stage?.querySelector<HTMLElement>(".touch-controls");
+      // Controls are a sibling of the layout row, not of the board.
+      const controls = app?.querySelector<HTMLElement>(".touch-controls");
 
       const chrome = (title?.offsetHeight ?? 0) + (controls?.offsetHeight ?? 0) + PAGE_CHROME_PX;
       const availableHeight = window.innerHeight - chrome;
