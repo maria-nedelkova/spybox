@@ -483,6 +483,26 @@ export function createDog2Sprite(
  * delivered. If a corrected export turns up, it can replace this wholesale —
  * the re-encode also costs ~190KB over the original.
  *
+ * The walk-backward row (cells 12-14) was rebuilt on 2026-08-29 from a
+ * separately supplied image rather than from any of the numbered exports.
+ * That source was a JPEG on an opaque black field at a different,
+ * non-uniform grid (row pitches 168/167/171/184/109), so it could not be
+ * dropped in:
+ *  - Transparency was reconstructed by flood-filling the backdrop inward
+ *    from the border, NOT by keying on darkness. The character is outlined
+ *    in a near-black navy, and a global dark threshold would have eaten it.
+ *  - Each frame was then scaled to the row's existing 197px content height
+ *    and bottom-anchored to its shared ground line so it sits level with
+ *    the other rows.
+ * It fixes both defects the row had: every frame now carries the horn/ear
+ * tufts (cell 12 lacked them) and the tail stays on one side (it used to
+ * flip between frames). Verified afterwards that only cells 12-14 changed
+ * and that the three frames are pairwise distinct.
+ *
+ * The source is lossy and ~44% noisier within flat colour areas than this
+ * sheet, but these frames draw at roughly 0.4x on screen, which hides it.
+ * A clean PNG at this grid with real alpha would still be preferable.
+ *
  * REJECTED EXPORT, 2026-08-29 ("chimera-sprite 8"). It claimed to fix the
  * walk-backward row; it was diffed cell by cell against this sheet and NOT
  * applied. Findings, so the same export isn't retried:
