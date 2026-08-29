@@ -10,15 +10,10 @@
   --wall-edge: #4a5b70;
   --floor: #1a2028;
   --goal-ring: #d4af6a;
-  --box: #8a7250;
-  --box-edge: #b89968;
-  --box-goal: #4caf6a;
-  --box-goal-edge: #7fd99a;
   --player: #d4af6a;
   --player-edge: #f2d9a0;
   --text: #eef1f5;
   --muted: #7c8a9a;
-  --accent: #cf3b3b;
 
   /* Board.tsx overrides --cell-size per level so tall/wide grids shrink to
      fit the viewport. Terrain cells and the absolutely-positioned tokens both
@@ -57,6 +52,32 @@ body {
    the game view is the board itself. That made the layout width depend on the
    board while the board sized itself from the layout, so the centre column
    could never grow past whatever it first measured. */
+
+/* The board keeps its own vocabulary (wall, floor, crate...) but the values
+   now derive from the active 8bitcn theme, so it changes with it. This has to
+   sit on body: that is where .theme-soft-pop puts --card, --primary and the
+   rest, and on :root these would resolve against the default light palette. */
+body {
+  --table: color-mix(in oklab, var(--card) 55%, black);
+  --panel: var(--card);
+  --panel-border: var(--border);
+
+  /* Walls must stay clearly lighter than the floor — the levels use interior
+     walls as the actual puzzle, so the layout has to read at a glance. */
+  --wall: var(--card);
+  --wall-edge: color-mix(in oklab, var(--card) 55%, white);
+  --floor: color-mix(in oklab, var(--card) 38%, black);
+
+  --goal-ring: var(--accent);
+  --crate: var(--primary);
+  --crate-done: var(--chart-5);
+  --box-goal-edge: color-mix(in oklab, var(--chart-5) 85%, white);
+
+  --text: var(--foreground);
+  --muted: var(--muted-foreground);
+  --bg: var(--background);
+}
+
 #root {
   width: 100%;
 }
@@ -245,8 +266,8 @@ body {
   position: relative;
   padding: 10px;
   background: var(--table);
-  border: 3px solid var(--panel-border);
-  border-radius: 4px;
+  border: 3px solid var(--ring);
+  border-radius: 0;
 }
 
 .board__terrain {
@@ -314,9 +335,9 @@ body {
 .crate {
   position: absolute;
   inset: 6%;
-  background: linear-gradient(135deg, #c99a52, #a97b3a);
-  border: 3px solid #6d4d20;
-  border-radius: 3px;
+  background: linear-gradient(135deg, var(--crate), color-mix(in oklab, var(--crate) 65%, black));
+  border: 3px solid color-mix(in oklab, var(--crate) 45%, black);
+  border-radius: 0;
 }
 
 .crate__brace {
@@ -325,7 +346,7 @@ body {
   right: 6%;
   top: 44%;
   height: 12%;
-  background: #5c3f1a;
+  background: color-mix(in oklab, var(--crate) 38%, black);
 }
 
 .crate__brace--1 {
@@ -341,7 +362,7 @@ body {
   width: 10%;
   height: 10%;
   border-radius: 50%;
-  background: #3a2a10;
+  background: color-mix(in oklab, var(--crate) 24%, black);
 }
 
 .crate__bolt--tl {
@@ -365,16 +386,16 @@ body {
 }
 
 .crate--on-goal {
-  background: linear-gradient(135deg, #6fcf7a, #3f9c4d);
-  border-color: #2c6a37;
+  background: linear-gradient(135deg, var(--crate-done), color-mix(in oklab, var(--crate-done) 65%, black));
+  border-color: color-mix(in oklab, var(--crate-done) 45%, black);
 }
 
 .crate--on-goal .crate__brace {
-  background: #245c2c;
+  background: color-mix(in oklab, var(--crate-done) 38%, black);
 }
 
 .crate--on-goal .crate__bolt {
-  background: #1c4a22;
+  background: color-mix(in oklab, var(--crate-done) 24%, black);
 }
 
 .win-banner {
@@ -592,8 +613,8 @@ body {
   font-size: 1.56rem;
   color: var(--text);
   background: var(--panel);
-  border: 2px solid var(--ring);
-  border-radius: 4px;
+  border: 2px solid var(--border);
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
