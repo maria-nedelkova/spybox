@@ -11,8 +11,8 @@ const MIN_CELL_PX = 14;
 const BOARD_CHROME_PX = 26;
 /** Grid gap between cells; must match --cell-gap in style.css. */
 const GAP_PX = 2;
-/** Room left under the board for the touch controls. */
-const SPACE_BELOW_BOARD_PX = 160;
+/** .app's vertical padding plus the row gaps around the board. */
+const PAGE_CHROME_PX = 72;
 
 function terrainAt(level: Level, r: number, c: number): TerrainKind {
   const k = `${r},${c}`;
@@ -40,19 +40,31 @@ export function Board({
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(MAX_CELL_PX);
 
-  // Shrink the cells (never past 56px) so even the widest/tallest level fits
-  // without scrolling. Neither budget is a fixed amount: the header and the
-  // side columns change size with the viewport, so measure both rather than
-  // subtracting guessed constants. Width comes from the containing column
-  // (NOT the window) — the menu and mission panel flank the board, and using
-  // the full window width would size cells that overlap them.
+  // Shrink the cells (never past MAX_CELL_PX) so even the widest/tallest level
+  // fits without scrolling.
+  //
+  // The height budget is deliberately derived from the title and the touch
+  // controls rather than from the board's own position on screen. The page is
+  // vertically centred, so measuring the board's top would be self-referential:
+  // a smaller board leaves more free space, centring pushes the board further
+  // down, the budget shrinks again, and the cells collapse. Sizing against
+  // siblings whose height does not depend on the board breaks that loop.
+  //
+  // Width does come from the containing column (NOT the window) — the menu and
+  // mission rail flank the board, and the full window width would size cells
+  // that run underneath them.
   useLayoutEffect(() => {
     function recalc() {
       const el = boardRef.current;
       if (!el) return;
-      const top = el.getBoundingClientRect().top;
-      const availableHeight = window.innerHeight - top - SPACE_BELOW_BOARD_PX;
-      const availableWidth = el.parentElement?.clientWidth ?? window.innerWidth;
+      const stage = el.parentElement;
+      const app = el.closest(".app");
+      const title = app?.querySelector<HTMLElement>(".title");
+      const controls = stage?.querySelector<HTMLElement>(".touch-controls");
+
+      const chrome = (title?.offsetHeight ?? 0) + (controls?.offsetHeight ?? 0) + PAGE_CHROME_PX;
+      const availableHeight = window.innerHeight - chrome;
+      const availableWidth = stage?.clientWidth ?? window.innerWidth;
       const fitsWidth = (availableWidth - BOARD_CHROME_PX - (level.width - 1) * GAP_PX) / level.width;
       const fitsHeight =
         (availableHeight - BOARD_CHROME_PX - (level.height - 1) * GAP_PX) / level.height;

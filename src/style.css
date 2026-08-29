@@ -66,7 +66,7 @@ body {
   --floor: color-mix(in oklab, var(--card) 38%, black);
 
   --goal-ring: var(--accent);
-  --crate: var(--primary);
+  --crate: #c08a44; /* wood — no brown in the palette to borrow */
   --crate-done: var(--chart-5);
   --box-goal-edge: color-mix(in oklab, var(--chart-5) 85%, white);
 
@@ -90,9 +90,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
   width: 100%;
+  min-height: 100vh;
 }
 
 /* Title across the top; menu, board and mission rail share the row below it.
@@ -100,7 +102,7 @@ body {
    counters change width. */
 .layout {
   display: grid;
-  grid-template-columns: var(--menu-width) minmax(0, 1fr) var(--rail-width);
+  grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--rail-width);
   align-items: start;
   gap: 1.5rem;
   width: 100%;
@@ -126,6 +128,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: var(--menu-width);
+  justify-self: center;
 }
 
 .menu__item {
@@ -176,13 +180,14 @@ body {
 .mission__head {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   padding: 1rem 1rem 0.75rem;
 }
 
 .mission__name {
   margin: 0;
+  text-align: center;
   font-size: 1.1rem;
   line-height: 1.5;
   color: var(--accent);
@@ -224,6 +229,7 @@ body {
 
 .mission__briefing {
   margin: 0;
+  text-align: center;
   font-size: 0.86rem;
   line-height: 1.7;
   opacity: 0.8;
@@ -244,6 +250,8 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    /* the three-column layout pins this to --menu-width; let it reflow here */
+    width: auto;
   }
 
   .menu__item {
