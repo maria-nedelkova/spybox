@@ -13,7 +13,6 @@ const BOARD_CHROME_PX = 26;
 const GAP_PX = 2;
 /** Room left under the board for the touch controls. */
 const SPACE_BELOW_BOARD_PX = 130;
-const SIDE_MARGIN_PX = 40;
 
 function terrainAt(level: Level, r: number, c: number): TerrainKind {
   const k = `${r},${c}`;
@@ -42,17 +41,18 @@ export function Board({
   const [cellSize, setCellSize] = useState(MAX_CELL_PX);
 
   // Shrink the cells (never past 56px) so even the widest/tallest level fits
-  // without scrolling. The space above the board isn't a fixed amount — the
-  // level picker wraps to more rows as levels are added or the window
-  // narrows — so measure where the board actually starts rather than
-  // subtracting a guessed constant.
+  // without scrolling. Neither budget is a fixed amount: the header and the
+  // side columns change size with the viewport, so measure both rather than
+  // subtracting guessed constants. Width comes from the containing column
+  // (NOT the window) — the menu and mission panel flank the board, and using
+  // the full window width would size cells that overlap them.
   useLayoutEffect(() => {
     function recalc() {
       const el = boardRef.current;
       if (!el) return;
       const top = el.getBoundingClientRect().top;
       const availableHeight = window.innerHeight - top - SPACE_BELOW_BOARD_PX;
-      const availableWidth = window.innerWidth - SIDE_MARGIN_PX;
+      const availableWidth = el.parentElement?.clientWidth ?? window.innerWidth;
       const fitsWidth = (availableWidth - BOARD_CHROME_PX - (level.width - 1) * GAP_PX) / level.width;
       const fitsHeight =
         (availableHeight - BOARD_CHROME_PX - (level.height - 1) * GAP_PX) / level.height;
@@ -60,7 +60,15 @@ export function Board({
     }
     recalc();
     window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
+    // The column can also change width without the window resizing — when the
+    // layout switches between stacked and three-column, for instance.
+    const parent = boardRef.current?.parentElement;
+    const observer = parent ? new ResizeObserver(recalc) : null;
+    if (parent && observer) observer.observe(parent);
+    return () => {
+      window.removeEventListener("resize", recalc);
+      observer?.disconnect();
+    };
   }, [level.width, level.height]);
 
   return (

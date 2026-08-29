@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Board } from "@/components/Board";
 import { CharacterSelect } from "@/components/CharacterSelect";
-import { LevelSelect } from "@/components/LevelSelect";
-import { TopBar } from "@/components/TopBar";
+import { MissionPanel } from "@/components/MissionPanel";
+import { SideMenu } from "@/components/SideMenu";
 import { TouchControls } from "@/components/TouchControls";
 import { Button } from "@/components/ui/8bit/button";
 import type { CharacterId } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
-import { recordScore } from "@/lib/bestScore";
+import { loadBest, recordScore } from "@/lib/bestScore";
 import { playSound } from "@/lib/sound";
 
 export function App() {
@@ -66,37 +66,54 @@ export function App() {
     setScoreResult(recordScore(level.name, stateRef.current.moves));
   }, [won, level.name]);
 
+  // Re-read after a win so the panel shows a record set moments ago.
+  const [best, setBest] = useState<number | null>(null);
+  useEffect(() => {
+    setBest(loadBest(level.name));
+  }, [level.name, scoreResult]);
+
   if (!character) {
     return <CharacterSelect onSelect={setCharacter} />;
   }
 
   return (
     <div className="app">
-      <div className="app__header">
-        <h1 className="title">SPYBOX</h1>
-        <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={goToLevel} />
+      <h1 className="title">SPYBOX</h1>
+
+      <div className="layout">
+        <SideMenu
+          character={character}
+          canUndo={canUndo}
+          muted={muted}
+          onUndo={undo}
+          onReset={reset}
+          onToggleMuted={toggleMuted}
+          onSwitchAgent={() => setCharacter(null)}
+        />
+
+        <div className="layout__stage">
+          <Board
+            level={level}
+            state={state}
+            character={character}
+            facing={facing}
+            moving={isMoving}
+          />
+          <TouchControls onMove={applyMove} />
+        </div>
+
+        <MissionPanel
+          levelName={level.name}
+          levelIndex={levelIndex}
+          levelNames={levelNames}
+          briefing={briefing}
+          moves={state.moves}
+          pushes={state.pushes}
+          best={best}
+          onSelectLevel={goToLevel}
+        />
       </div>
-      <p className="briefing">{briefing}</p>
-      <TopBar
-        levelName={level.name}
-        moves={state.moves}
-        pushes={state.pushes}
-        character={character}
-        canUndo={canUndo}
-        muted={muted}
-        onUndo={undo}
-        onReset={reset}
-        onToggleMuted={toggleMuted}
-        onSwitchAgent={() => setCharacter(null)}
-      />
-      <Board
-        level={level}
-        state={state}
-        character={character}
-        facing={facing}
-        moving={isMoving}
-      />
-      <TouchControls onMove={applyMove} />
+
       {won && (
         // Overlaid rather than stacked under the board: adding a block to the
         // flow after the board is measured would push the touch controls past

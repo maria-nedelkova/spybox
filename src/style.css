@@ -25,6 +25,8 @@
      derive from these two vars, so they can never drift out of alignment. */
   --cell-size: 56px;
   --cell-gap: 2px;
+  --menu-width: 9.5rem;
+  --rail-width: 13rem;
   --font-display: "Press Start 2P", monospace;
 }
 
@@ -40,7 +42,9 @@ body {
   margin: 0;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  /* Anchor to the top so the title sits at the top of the page rather than
+     floating in the middle of the viewport on short layouts. */
+  align-items: flex-start;
   justify-content: center;
   background: radial-gradient(circle at 50% -10%, #1a212b 0%, var(--bg) 60%);
   color: var(--text);
@@ -52,105 +56,183 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.85rem;
-  padding: 1.25rem 1rem;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  width: 100%;
 }
 
-/* Title and level picker share a row so the header costs one line, not two. */
-.app__header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.25rem;
+/* Title across the top; menu, board and mission rail share the row below it.
+   The side columns are fixed-width so the board keeps a stable centre as the
+   counters change width. */
+.layout {
+  display: grid;
+  grid-template-columns: var(--menu-width) minmax(0, 1fr) var(--rail-width);
+  align-items: start;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 72rem;
 }
 
-.title {
-  font-size: 1.5rem;
-  letter-spacing: 0.15em;
-  color: var(--goal-ring);
-  text-shadow: 3px 3px 0 #000;
-  margin: 0;
-}
-
-.briefing {
-  margin: 0;
-  font-size: 0.6rem;
-  color: var(--muted);
-  text-align: center;
-  max-width: 32rem;
-  line-height: 1.6;
-}
-
-/* ---------- HUD: readouts on one line, controls on the next ---------- */
-
-.topbar {
+.layout__stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
+  gap: 1rem;
+  min-width: 0;
 }
 
-.topbar__info {
+/* ---------- Left menu ---------- */
+
+.menu {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   gap: 0.5rem;
-  font-size: 0.7rem;
-  color: var(--muted);
 }
 
-.topbar__level {
-  color: var(--goal-ring);
-}
-
-.topbar__sep {
-  color: var(--panel-border);
-}
-
-.topbar__stat {
+/* Uniform width and a shared 3-column grid, so icons, labels and states line
+   up down the menu regardless of label length. */
+.menu__item {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  text-align: left;
   color: var(--text);
-}
-
-.topbar__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-/* Avatar-only "switch agent" button: the character portrait *is* the label,
-   so the accessible name lives on aria-label/title in TopBar.tsx. */
-.topbar__agent {
-  width: 2.6rem;
-  height: 2.6rem;
-  padding: 0.15rem;
-  margin-left: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: var(--panel);
   border: 2px solid var(--panel-border);
   border-radius: 2px;
   cursor: pointer;
-  flex: none;
 }
 
-.topbar__agent:hover,
-.topbar__agent:focus-visible {
+.menu__item:not(:disabled):hover,
+.menu__item:focus-visible {
   border-color: var(--goal-ring);
 }
 
-.topbar__agent:active {
+.menu__item:not(:disabled):active {
   transform: translateY(1px);
 }
 
-.topbar__agent-avatar {
+.menu__item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.menu__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.menu__icon--avatar {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.menu__avatar {
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+.menu__label {
+  letter-spacing: 0.04em;
+}
+
+.menu__state {
+  font-size: 0.5rem;
+  color: var(--muted);
+}
+
+.menu__item--agent .menu__label {
+  color: var(--goal-ring);
+}
+
+/* ---------- Right mission rail ---------- */
+
+.mission {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+  border-radius: 2px;
+}
+
+.mission__name {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--goal-ring);
+}
+
+.mission__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 2px solid var(--panel-border);
+}
+
+.mission__stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.6rem;
+}
+
+.mission__stat dt {
+  color: var(--muted);
+}
+
+.mission__stat dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.mission__briefing {
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 2px solid var(--panel-border);
+  font-size: 0.55rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Narrow viewports: drop the rails under the board, menu back to a row. */
+@media (max-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .layout__stage {
+    order: -1;
+  }
+
+  .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .menu__item {
+    width: auto;
+    grid-template-columns: 1.4rem auto;
+  }
+
+  .menu__state {
+    display: none;
+  }
 }
 
 /* ---------- Board: terrain grid + absolutely-positioned token layer ---------- */
@@ -429,7 +511,7 @@ body {
 .level-nav__step:focus-visible,
 .level-nav__current:focus-visible,
 .level-nav__tile:focus-visible,
-.topbar__agent:focus-visible {
+.menu__item:focus-visible {
   outline: 2px solid var(--goal-ring);
   outline-offset: 2px;
 }
