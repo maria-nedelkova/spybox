@@ -491,9 +491,14 @@ export function createDog2Sprite(
  *  - Transparency was reconstructed by flood-filling the backdrop inward
  *    from the border, NOT by keying on darkness. The character is outlined
  *    in a near-black navy, and a global dark threshold would have eaten it.
- *  - Each frame was then scaled to the row's existing 197px content height
- *    and bottom-anchored to its shared ground line so it sits level with
- *    the other rows.
+ *  - Each frame was scaled so its hood matches the forward row's (147px
+ *    across) and bottom-anchored to the shared ground line at y=241. The
+ *    hood is the same disc whether seen from the front or the back, so
+ *    matching its width is what makes the two rows read as one character.
+ *    Matching the old row's 197px bbox height instead left the chimera
+ *    visibly larger walking away than walking toward you; the supplied
+ *    frames were already the right size, so they are used at ~1:1 now
+ *    rather than upscaled.
  * It fixes both defects the row had: every frame now carries the horn/ear
  * tufts (cell 12 lacked them) and the tail stays on one side (it used to
  * flip between frames). Verified afterwards that only cells 12-14 changed
