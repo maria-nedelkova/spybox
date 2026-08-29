@@ -5,14 +5,14 @@ import { PlayerToken } from "@/components/PlayerToken";
 import type { CharacterId } from "@/game/characters";
 import type { Direction, GameState, Level } from "@/game/types";
 
-const MAX_CELL_PX = 56;
+const MAX_CELL_PX = 96;
 const MIN_CELL_PX = 14;
 /** .board's padding + border on both sides; must match style.css. */
 const BOARD_CHROME_PX = 26;
 /** Grid gap between cells; must match --cell-gap in style.css. */
 const GAP_PX = 2;
 /** Room left under the board for the touch controls. */
-const SPACE_BELOW_BOARD_PX = 130;
+const SPACE_BELOW_BOARD_PX = 160;
 
 function terrainAt(level: Level, r: number, c: number): TerrainKind {
   const k = `${r},${c}`;
