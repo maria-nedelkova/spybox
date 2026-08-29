@@ -10,10 +10,7 @@
   --wall-edge: #4a5b70;
   --floor: #1a2028;
   --goal-ring: #d4af6a;
-  --player: #d4af6a;
-  --player-edge: #f2d9a0;
   --text: #eef1f5;
-  --muted: #7c8a9a;
 
   /* Board.tsx overrides --cell-size per level so tall/wide grids shrink to
      fit the viewport. Terrain cells and the absolutely-positioned tokens both
@@ -74,7 +71,6 @@ body {
   --box-goal-edge: color-mix(in oklab, var(--chart-5) 85%, white);
 
   --text: var(--foreground);
-  --muted: var(--muted-foreground);
   --bg: var(--background);
 }
 
@@ -553,7 +549,7 @@ body {
 
 .character-select__prompt {
   font-size: 1.2rem;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .character-select__grid {
