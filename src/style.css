@@ -52,6 +52,15 @@ body {
   -webkit-font-smoothing: none;
 }
 
+/* React mounts here. Without an explicit width this shrink-to-fits as a flex
+   item, so .app’s width:100% resolved against the *content* width — which for
+   the game view is the board itself. That made the layout width depend on the
+   board while the board sized itself from the layout, so the centre column
+   could never grow past whatever it first measured. */
+#root {
+  width: 100%;
+}
+
 .title {
   font-size: 2.2rem;
   letter-spacing: 0.15em;
