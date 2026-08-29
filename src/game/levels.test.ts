@@ -64,6 +64,6 @@ describe("LEVELS", () => {
 
   test("opens with two crates and ends on a genuinely hard one", () => {
     expect(solved[0]!.boxes).toBeGreaterThanOrEqual(2);
-    expect(solved.at(-1)!.score).toBeGreaterThanOrEqual(100);
+    expect(solved.at(-1)!.score).toBeGreaterThanOrEqual(150);
   });
 });
