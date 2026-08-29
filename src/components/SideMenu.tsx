@@ -1,10 +1,12 @@
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/ui/8bit/button";
 import { CHARACTERS, type CharacterId } from "@/game/characters";
 
 /**
- * The game's controls as a vertical menu down the left edge. Every item is the
- * same width and carries a text label — the icons sit alongside the words
- * rather than replacing them, so nothing depends on recognising a glyph.
+ * The game's controls as a vertical menu down the left edge, built from the
+ * 8bitcn button so the chunky border and press state match the rest of the
+ * kit. Every item is the same width and carries a text label — the icons sit
+ * alongside the words rather than replacing them.
  */
 export function SideMenu({
   character,
@@ -27,22 +29,22 @@ export function SideMenu({
 
   return (
     <nav className="menu" aria-label="Game controls">
-      <button type="button" className="menu__item" onClick={onUndo} disabled={!canUndo}>
+      <Button variant="secondary" className="menu__item" onClick={onUndo} disabled={!canUndo}>
         <span className="menu__icon" aria-hidden="true">
           ↺
         </span>
         <span className="menu__label">Undo</span>
-      </button>
+      </Button>
 
-      <button type="button" className="menu__item" onClick={onReset}>
+      <Button variant="secondary" className="menu__item" onClick={onReset}>
         <span className="menu__icon" aria-hidden="true">
           ⟳
         </span>
         <span className="menu__label">Reset</span>
-      </button>
+      </Button>
 
-      <button
-        type="button"
+      <Button
+        variant="secondary"
         className="menu__item"
         onClick={onToggleMuted}
         aria-pressed={!muted}
@@ -53,10 +55,10 @@ export function SideMenu({
         </span>
         <span className="menu__label">Sound</span>
         <span className="menu__state">{muted ? "off" : "on"}</span>
-      </button>
+      </Button>
 
-      <button
-        type="button"
+      <Button
+        variant="secondary"
         className="menu__item menu__item--agent"
         onClick={onSwitchAgent}
         title={`Switch agent — currently ${characterName}`}
@@ -66,7 +68,7 @@ export function SideMenu({
         </span>
         <span className="menu__label">{characterName}</span>
         <span className="menu__state">switch</span>
-      </button>
+      </Button>
     </nav>
   );
 }
