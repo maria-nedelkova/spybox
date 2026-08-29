@@ -453,7 +453,15 @@ export function createDog2Sprite(
  *    bookended so the cycle begins and ends on two feet rather than stopping
  *    mid-stride. The two step frames use opposite paws. See the note below
  *    about how frame 9 was recovered.
- *  - Walk backward/up (row 3, 3 frames)
+ *  - Walk backward/up (row 3, 3 frames): neutral, step, step. The three
+ *    frames are pixel-distinct from one another, and the two step frames do
+ *    raise opposite legs (frame 13 plants the left foot and lifts the right;
+ *    frame 14 does the reverse). Two cosmetic flaws remain, both verified by
+ *    pixel inspection — see the rejected-export note below:
+ *      * frame 12 (neutral) is missing the yellow horn/ear tufts that frames
+ *        13 and 14 have, so the horns pop in and out over the cycle;
+ *      * frame 13 draws the tail/pet on the character's LEFT while frames 12
+ *        and 14 draw it on the RIGHT, so the pet jumps sides mid-stride.
  *  - Sit (row 3, cell 4) — a front-facing seated portrait for the character
  *    select screen, not part of any walk cycle. This cell was empty in the
  *    previous export.
@@ -474,6 +482,28 @@ export function createDog2Sprite(
  * cell composited back in; every other cell is byte-identical to what was
  * delivered. If a corrected export turns up, it can replace this wholesale —
  * the re-encode also costs ~190KB over the original.
+ *
+ * REJECTED EXPORT, 2026-08-29 ("chimera-sprite 8"). It claimed to fix the
+ * walk-backward row; it was diffed cell by cell against this sheet and NOT
+ * applied. Findings, so the same export isn't retried:
+ *  - Cells 16-19 were byte-identical. Cells 0-8, 10, 11, 14 and 15 differed
+ *    only in the RGB of semi-transparent edge pixels (0 interior-RGB and 0
+ *    alpha changes) — that is the canvas premultiply round-trip this sheet
+ *    went through, not an art change. Only cells 9, 12 and 13 differed in a
+ *    way that changes what you see.
+ *  - Cell 9 REGRESSED: in that export cells 8, 9 and 11 are again pixel
+ *    identical, i.e. it reintroduced the one-step walk-forward bug that the
+ *    note above patches. Any wholesale copy would undo that patch.
+ *  - Cell 12 was a clean win — the missing horn/ear tufts were added with
+ *    nothing else disturbed. It is the one part of that export worth
+ *    salvaging if someone wants to composite a single cell.
+ *  - Cell 13 was fixed destructively and is why the export was rejected. The
+ *    tail/pet was moved to the right by pasting a rectangle, which deleted
+ *    the character's left paw blob, clipped the right one, and left an
+ *    orphaned second leash stub lying across the torso (interior pixels
+ *    x114-180, y195-208). The leg pose is unchanged from this sheet, so the
+ *    advertised "alternating gait" fix delivered nothing that wasn't already
+ *    here.
  */
 const CHIMERA_GRID = { frameWidth: 230, frameHeight: 250, columns: 4, rows: 5 } as const;
 
