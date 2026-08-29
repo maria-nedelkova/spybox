@@ -539,12 +539,17 @@ body {
   outline-offset: 2px;
 }
 
+/* The select screen centres in the viewport, unlike the game view, which
+   stays anchored to the top so the title sits at the top of the page. Body is
+   aligned to flex-start for that, so the centring has to happen here. */
 .character-select {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1.5rem;
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
+  min-height: 100vh;
 }
 
 .character-select__prompt {
