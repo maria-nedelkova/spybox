@@ -81,7 +81,7 @@ body {
 .title {
   /* Scales with the window rather than stepping at a breakpoint, so the name
      shrinks as the board does instead of staying big enough to crowd it. */
-  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-size: clamp(1.1rem, 2.6vw, 1.75rem);
   /* The inherited 1.5 put 9px of leading above and below the glyphs, so the
      name read as 73px clear of the board while the menu and rail either side
      of it were a true 64. Boxing the text tightly makes the four gaps look
@@ -176,9 +176,15 @@ body {
   min-height: 0;
 }
 
+/* Pulled back to 2rem off the board. The row gap is 4rem because that is
+   what the menu, rail and d-pad keep, and a grid gap is uniform down the
+   axis — so closing the title's half of it takes a negative margin. It reads
+   as a label belonging to the board rather than a fourth thing arranged
+   around it, which is why this one is allowed out of that system. */
 .layout__stage > .title {
   grid-row: 1;
   align-self: end;
+  margin-bottom: -2rem;
 }
 
 .layout__stage > .board {
@@ -451,6 +457,12 @@ body {
     grid-area: 1 / 1;
     grid-template-rows: 1fr auto min-content;
     row-gap: 2rem;
+  }
+
+  /* The row gap is already 2rem here, so the pull-back the wide layout needs
+     would close it to nothing. */
+  .layout__stage > .title {
+    margin-bottom: 0;
   }
 
   .menu {
@@ -914,8 +926,11 @@ body {
     font-size: 0.86rem;
   }
 
+  /* Not 0.75rem: the 8bitcn card frame is drawn 6px outside each card, so at
+     12px the neighbouring frames meet and the row reads as one long box
+     rather than three cards. */
   .character-select__grid {
-    gap: 0.75rem;
+    gap: 1.25rem;
   }
 
   /* Wide enough that three sit in one row on a sideways phone (3 x 192px
@@ -1032,9 +1047,11 @@ body {
    a control that duplicates it.
 
    The d-pad is already gone by here — a phone is inside the narrow rule
-   above — so this only has the title left to hide. */
+   above — so this only has the title left to hide. Only the copy of it over
+   the board: the start screen has room for the name and needs it, since
+   there is nothing else there to say what the game is. */
 @media (max-height: 30rem) and (orientation: landscape) and (pointer: coarse) {
-  .title {
+  .layout__stage > .title {
     display: none;
   }
 
