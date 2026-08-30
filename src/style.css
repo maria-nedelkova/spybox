@@ -440,11 +440,17 @@ body {
 
   /* The d-pad is gone here, so its row collapses and the board settles
      against the bottom of the stage. The gap that row leaves behind is what
-     separates the board from the menu bar — the same 4rem again, which is
-     why the layout's own row gap is zero. */
+     separates the board from the menu bar, which is why the layout's own row
+     gap is zero.
+
+     Half the 4rem the wide layout uses: there the gap has to match the one
+     the menu and rail keep at the board's sides, but nothing sits beside the
+     board here, so the only thing it buys is distance — and height is the
+     scarce dimension once the menu is a bar underneath. */
   .layout__stage {
     grid-area: 1 / 1;
     grid-template-rows: 1fr auto min-content;
+    row-gap: 2rem;
   }
 
   .menu {
