@@ -1,4 +1,11 @@
-import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { BoxToken } from "@/components/BoxToken";
 import { Cell, type TerrainKind } from "@/components/Cell";
 import { PlayerToken } from "@/components/PlayerToken";
@@ -30,6 +37,7 @@ export function Board({
   moving,
   onMove,
   onWalkTo,
+  children,
 }: {
   level: Level;
   state: GameState;
@@ -38,6 +46,8 @@ export function Board({
   moving: boolean;
   onMove: (direction: Direction) => void;
   onWalkTo: (target: Pos) => void;
+  /** Overlays drawn on top of the puzzle, positioned against the board. */
+  children?: ReactNode;
 }) {
   const rows = Array.from({ length: level.height }, (_, r) => r);
   const cols = Array.from({ length: level.width }, (_, c) => c);
@@ -178,6 +188,11 @@ export function Board({
           moving={moving}
         />
       </div>
+
+      {/* Overlays belong in here rather than beside the board: .board is the
+          positioning context, so anything absolute in this slot centres on
+          the puzzle itself and not on whatever box happens to contain it. */}
+      {children}
     </div>
   );
 }

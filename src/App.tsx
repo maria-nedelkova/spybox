@@ -92,8 +92,6 @@ export function App() {
 
   return (
     <div className="app">
-      <h1 className="title">SPYBOX</h1>
-
       <div className="layout">
         <SideMenu
           character={character}
@@ -108,7 +106,12 @@ export function App() {
           onSwitchAgent={() => setCharacter(null)}
         />
 
+        {/* The title lives in here rather than above the row so it can be
+            centred in the space over the board — the stage is the only box
+            that knows where the board's top edge is. */}
         <div className="layout__stage">
+          <h1 className="title">SPYBOX</h1>
+
           <Board
             level={level}
             state={state}
@@ -117,7 +120,30 @@ export function App() {
             moving={isMoving}
             onMove={applyMove}
             onWalkTo={walkTo}
-          />
+          >
+            {won && (
+              // Inside the board so it centres on the puzzle rather than on
+              // the viewport, and overlaid rather than stacked: a block in
+              // the flow after the board is measured would push the touch
+              // controls off the bottom.
+              <div className="win-banner" role="status">
+                <p className="win-banner__headline">
+                  {hasNextLevel ? "Level cleared." : "Mission accomplished — all levels cleared!"}
+                </p>
+                {scoreResult && (
+                  <p className="win-banner__score">
+                    {scoreResult.isNewBest ? "New best: " : "Best: "}
+                    {scoreResult.best} moves
+                  </p>
+                )}
+                {hasNextLevel && (
+                  <Button size="sm" onClick={nextLevel}>
+                    Next level →
+                  </Button>
+                )}
+              </div>
+            )}
+          </Board>
         </div>
 
         {/* Same job as .layout__stage: a plain cell the grid can stretch, so
@@ -129,28 +155,6 @@ export function App() {
 
         <TouchControls onMove={applyMove} />
       </div>
-
-      {won && (
-        // Overlaid rather than stacked under the board: adding a block to the
-        // flow after the board is measured would push the touch controls past
-        // the bottom of the viewport.
-        <div className="win-banner" role="status">
-          <p className="win-banner__headline">
-            {hasNextLevel ? "Level cleared." : "Mission accomplished — all levels cleared!"}
-          </p>
-          {scoreResult && (
-            <p className="win-banner__score">
-              {scoreResult.isNewBest ? "New best: " : "Best: "}
-              {scoreResult.best} moves
-            </p>
-          )}
-          {hasNextLevel && (
-            <Button size="sm" onClick={nextLevel}>
-              Next level →
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

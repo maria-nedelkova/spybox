@@ -156,14 +156,27 @@ body {
   justify-self: center;
 }
 
+/* Three rows with equal flexible ends: the board sits in the middle one and
+   is therefore centred, and the title centres inside the space above it
+   rather than being pinned under the top edge of the window. Both rows are
+   placed explicitly, because the title is hidden on a sideways phone and the
+   board would otherwise slide up into row 1. */
 .layout__stage {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
   min-width: 0;
   min-height: 0;
+}
+
+.layout__stage > .title {
+  grid-row: 1;
+}
+
+.layout__stage > .board {
+  grid-row: 2;
 }
 
 .layout__rail {
@@ -614,11 +627,19 @@ body {
   background: color-mix(in oklab, var(--crate-done) 24%, black);
 }
 
+/* Centred on the board, not the viewport — it renders inside .board, which
+   is the positioning context. On a phone the board is nowhere near the
+   middle of the screen, so anchoring to the viewport put this over the menu
+   bar rather than over the puzzle. */
 .win-banner {
-  position: fixed;
+  position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  /* Sit inside the board where it is roomy, but never squeeze narrower than
+     the headline can read — on a small board the overlay spilling past the
+     edges is better than one word per line. */
+  max-width: max(16rem, calc(100% - 1rem));
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -778,6 +799,9 @@ body {
   gap: 1.5rem;
   padding: 2rem 1rem;
   min-height: 100vh;
+  /* dvh so the mobile browser's own chrome does not push the cards under the
+     fold the way vh's fixed largest-viewport value would. */
+  min-height: 100dvh;
 }
 
 .character-select__prompt {
@@ -847,6 +871,59 @@ body {
   color: color-mix(in oklab, var(--card-foreground) 78%, var(--primary));
   line-height: 1.65;
   text-align: center;
+}
+
+/* Small screens, by either dimension. Three cards at their full size come to
+   about 800px across and 300 tall, which is the whole of a sideways phone —
+   so everything scales down and the row is allowed to wrap. Keyed on height
+   as well as width because the phone that needs this most is in landscape,
+   where the width alone looks roomy. */
+@media (max-width: 48rem), (max-height: 34rem) {
+  .character-select {
+    gap: 0.9rem;
+    padding: 1rem 0.75rem;
+  }
+
+  .character-select .title {
+    font-size: 1.5rem;
+  }
+
+  .character-select__prompt {
+    font-size: 0.86rem;
+  }
+
+  .character-select__grid {
+    gap: 0.75rem;
+  }
+
+  /* Wide enough that three sit in one row on a sideways phone (3 x 192px
+     plus gaps against 844) and that the tagline stops wrapping to five
+     lines — which was what made the cards too tall, not the type size. */
+  .character-select__card {
+    width: 12rem;
+    /* The shadcn card's own py-6 is 48px of the card's height here — more
+       than the avatar — and the body below sets its own padding anyway. */
+    padding-block: 0;
+  }
+
+  .character-select__card-body {
+    gap: 0.4rem;
+    padding: 0.8rem 0.6rem;
+  }
+
+  .character-select__avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .character-select__name {
+    font-size: 0.8rem;
+  }
+
+  .character-select__tagline {
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
 }
 
 .touch-controls {

@@ -152,8 +152,24 @@ export function useGame() {
     setLevelIndex(Math.max(0, Math.min(index, LEVELS.length - 1)));
   }, []);
 
+  const hasNextLevel = levelIndex < LEVELS.length - 1;
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      // Enter carries on to the next level once one is cleared, so the
+      // keyboard never has to reach for the mouse. Skipped while a control
+      // has focus, where Enter already means "press this" — otherwise the
+      // banner's own button would fire and advance twice.
+      if (e.key === "Enter") {
+        if (!won || !hasNextLevel) return;
+        if (e.target instanceof HTMLElement && e.target.closest("button, a, [role='button']")) {
+          return;
+        }
+        e.preventDefault();
+        nextLevel();
+        return;
+      }
+
       const direction = KEY_TO_DIRECTION[e.key];
       if (!direction) return;
       e.preventDefault();
@@ -161,7 +177,7 @@ export function useGame() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [applyMove]);
+  }, [applyMove, hasNextLevel, nextLevel, won]);
 
   return {
     level,
@@ -172,7 +188,7 @@ export function useGame() {
     facing,
     won,
     canUndo: active.history.length > 0,
-    hasNextLevel: levelIndex < LEVELS.length - 1,
+    hasNextLevel,
     applyMove,
     walkTo,
     undo,
