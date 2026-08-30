@@ -25,6 +25,7 @@ export function App() {
     canUndo,
     hasNextLevel,
     applyMove,
+    walkTo,
     undo,
     reset,
     nextLevel,
@@ -114,7 +115,8 @@ export function App() {
             character={character}
             facing={facing}
             moving={isMoving}
-            onSwipe={applyMove}
+            onMove={applyMove}
+            onWalkTo={walkTo}
           />
         </div>
 

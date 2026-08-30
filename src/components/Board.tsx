@@ -1,10 +1,10 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { BoxToken } from "@/components/BoxToken";
 import { Cell, type TerrainKind } from "@/components/Cell";
 import { PlayerToken } from "@/components/PlayerToken";
 import type { CharacterId } from "@/game/characters";
-import type { Direction, GameState, Level } from "@/game/types";
-import { useSwipe } from "@/hooks/useSwipe";
+import type { Direction, GameState, Level, Pos } from "@/game/types";
+import { useBoardTouch } from "@/hooks/useBoardTouch";
 
 const MAX_CELL_PX = 96;
 const MIN_CELL_PX = 14;
@@ -28,14 +28,16 @@ export function Board({
   character,
   facing,
   moving,
-  onSwipe,
+  onMove,
+  onWalkTo,
 }: {
   level: Level;
   state: GameState;
   character: CharacterId;
   facing: Direction;
   moving: boolean;
-  onSwipe: (direction: Direction) => void;
+  onMove: (direction: Direction) => void;
+  onWalkTo: (target: Pos) => void;
 }) {
   const rows = Array.from({ length: level.height }, (_, r) => r);
   const cols = Array.from({ length: level.width }, (_, c) => c);
@@ -43,9 +45,29 @@ export function Board({
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(MAX_CELL_PX);
 
+  // Tap a tile to walk to it. The cell is worked out from the grid's
+  // geometry rather than from the event target, because the token layer sits
+  // over the terrain and would swallow the hit. Where to walk — and whether
+  // there is a route at all — is the game's business, not the board's.
+  const onTap = useCallback(
+    (clientX: number, clientY: number) => {
+      const terrain = boardRef.current?.querySelector(".board__terrain");
+      if (!terrain) return;
+
+      const rect = terrain.getBoundingClientRect();
+      const stride = cellSize + GAP_PX;
+      const c = Math.floor((clientX - rect.left) / stride);
+      const r = Math.floor((clientY - rect.top) / stride);
+      if (r < 0 || c < 0 || r >= level.height || c >= level.width) return;
+
+      onWalkTo({ r, c });
+    },
+    [cellSize, level.height, level.width, onWalkTo]
+  );
+
   // The mobile layout is the board and the menu panel and nothing else, so
   // the board itself has to take movement input there.
-  useSwipe(boardRef, onSwipe);
+  useBoardTouch(boardRef, onMove, onTap);
 
   // Shrink the cells (never past MAX_CELL_PX) so even the widest/tallest level
   // fits without scrolling.

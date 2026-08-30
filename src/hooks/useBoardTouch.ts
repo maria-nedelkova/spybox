@@ -3,17 +3,23 @@ import { type RefObject, useEffect } from "react";
 import type { Direction } from "@/game/types";
 
 /** Under this a touch is a tap, not a swipe. */
-const THRESHOLD_PX = 24;
+const SWIPE_THRESHOLD_PX = 24;
 
 /**
- * Swipe-to-move, for the mobile layout where the d-pad is not on screen.
- * Sokoban is one tile per input, so this deliberately fires once per gesture
- * on release rather than tracking a drag — a swipe is a direction, not a
- * distance.
+ * The board's own movement input, for the layouts where the d-pad is not on
+ * screen. Two gestures, told apart by how far the finger travelled:
+ *
+ * - a swipe steps one tile in that direction
+ * - a tap on a neighbouring tile steps onto it
+ *
+ * Both are one tile per gesture, which is what Sokoban is: a swipe is a
+ * direction rather than a distance, so this fires once on release rather
+ * than tracking the drag.
  */
-export function useSwipe(
+export function useBoardTouch(
   ref: RefObject<HTMLElement | null>,
-  onSwipe: (direction: Direction) => void
+  onSwipe: (direction: Direction) => void,
+  onTap: (clientX: number, clientY: number) => void
 ) {
   useEffect(() => {
     const el = ref.current;
@@ -24,7 +30,7 @@ export function useSwipe(
     let tracking = false;
 
     function onTouchStart(event: TouchEvent) {
-      // Ignore multi-touch outright: a pinch is not a move.
+      // Ignore multi-touch outright: a pinch is neither gesture.
       const touch = event.touches.length === 1 ? event.touches[0] : undefined;
       if (!touch) {
         tracking = false;
@@ -43,7 +49,11 @@ export function useSwipe(
 
       const dx = touch.clientX - startX;
       const dy = touch.clientY - startY;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < THRESHOLD_PX) return;
+
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD_PX) {
+        onTap(touch.clientX, touch.clientY);
+        return;
+      }
 
       // One axis per swipe — the larger delta wins, so a diagonal drag still
       // resolves to the direction the player mostly meant.
@@ -57,5 +67,5 @@ export function useSwipe(
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [ref, onSwipe]);
+  }, [ref, onSwipe, onTap]);
 }

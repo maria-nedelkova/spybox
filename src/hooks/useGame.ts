@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitialState, isWon, move, parseLevel } from "@/game/engine";
 import { LEVELS } from "@/game/levels";
-import type { Direction, GameState, Level } from "@/game/types";
+import { findPath } from "@/game/path";
+import type { Direction, GameState, Level, Pos } from "@/game/types";
+
+/**
+ * Gap between the steps of a tapped walk. Matches the token's CSS transition
+ * so each step lands just as the next begins and the walk reads as one
+ * continuous move rather than a series of hops.
+ */
+const STEP_MS = 130;
 
 const KEY_TO_DIRECTION: Record<string, Direction> = {
   ArrowUp: "up",
@@ -46,7 +54,18 @@ export function useGame() {
 
   const won = isWon(level, active.current);
 
-  const applyMove = useCallback(
+  // A tapped walk plays out over several ticks, so any other input has to be
+  // able to call it off — otherwise the remaining steps replay against a
+  // board that has moved on under them, and a route that avoided every crate
+  // starts shoving them.
+  const walkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelWalk = useCallback(() => {
+    if (walkTimer.current === null) return;
+    clearTimeout(walkTimer.current);
+    walkTimer.current = null;
+  }, []);
+
+  const step = useCallback(
     (direction: Direction) => {
       setFacing(direction);
       if (won) return;
@@ -59,17 +78,71 @@ export function useGame() {
     [level, won],
   );
 
+  const applyMove = useCallback(
+    (direction: Direction) => {
+      cancelWalk();
+      step(direction);
+    },
+    [cancelWalk, step],
+  );
+
+  /**
+   * Go to a tapped tile: one move if it is next to the player, otherwise a
+   * walk, a tile per tick. No-op when there is no route.
+   */
+  const walkTo = useCallback(
+    (target: Pos) => {
+      cancelWalk();
+      if (won) return;
+
+      // A neighbouring tile is a plain move rather than a walk, which is what
+      // makes tapping a crate push it. findPath will not route onto a crate —
+      // deliberately, since barging one on the way past is how a level
+      // becomes unwinnable — so a push has to be asked for directly.
+      const dr = target.r - active.current.player.r;
+      const dc = target.c - active.current.player.c;
+      if (Math.abs(dr) + Math.abs(dc) === 1) {
+        if (dr === -1) step("up");
+        else if (dr === 1) step("down");
+        else if (dc === -1) step("left");
+        else step("right");
+        return;
+      }
+
+      const path = findPath(level, active.current, target);
+      if (!path || path.length === 0) return;
+
+      let index = 0;
+      const takeStep = () => {
+        step(path[index]!);
+        index += 1;
+        walkTimer.current = index < path.length ? setTimeout(takeStep, STEP_MS) : null;
+      };
+      takeStep();
+    },
+    [active.current, cancelWalk, level, step, won],
+  );
+
+  // Undo, reset and level changes all invalidate a walk in flight, and so
+  // does unmounting.
+  useEffect(() => cancelWalk, [cancelWalk]);
+  useEffect(() => {
+    cancelWalk();
+  }, [level, cancelWalk]);
+
   const undo = useCallback(() => {
+    cancelWalk();
     setSlice((s) => {
       if (s.history.length === 0) return s;
       const previous = s.history[s.history.length - 1]!;
       return { level: s.level, current: previous, history: s.history.slice(0, -1) };
     });
-  }, []);
+  }, [cancelWalk]);
 
   const reset = useCallback(() => {
+    cancelWalk();
     setSlice(freshSlice(level));
-  }, [level]);
+  }, [cancelWalk, level]);
 
   const nextLevel = useCallback(() => {
     setLevelIndex((i) => Math.min(i + 1, LEVELS.length - 1));
@@ -101,6 +174,7 @@ export function useGame() {
     canUndo: active.history.length > 0,
     hasNextLevel: levelIndex < LEVELS.length - 1,
     applyMove,
+    walkTo,
     undo,
     reset,
     nextLevel,
