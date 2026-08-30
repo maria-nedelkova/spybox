@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <title>Spybox</title>
+  <!-- A crate on a 16px grid, so every edge lands on a whole pixel and the
+       diagonals stair-step instead of smoothing. Colours match the crate
+       token in game: wood #c08a44 over a darker frame and braces.
+       Note: no double hyphens anywhere in here. An SVG loaded as an image is
+       parsed as XML, where a double hyphen inside a comment is malformed and
+       the whole file silently fails to decode. -->
+  <rect width="16" height="16" fill="#6d4d22" />
+  <rect x="2" y="2" width="12" height="12" fill="#c08a44" />
+
+  <!-- Corner to corner braces. crispEdges is what keeps these pixelated. -->
+  <path d="M2 2 L14 14" stroke="#8a6130" stroke-width="2" />
+  <path d="M14 2 L2 14" stroke="#8a6130" stroke-width="2" />
+
+  <!-- Bolts at the four corners of the face. -->
+  <rect x="3" y="3" width="2" height="2" fill="#5c3f1b" />
+  <rect x="11" y="3" width="2" height="2" fill="#5c3f1b" />
+  <rect x="3" y="11" width="2" height="2" fill="#5c3f1b" />
+  <rect x="11" y="11" width="2" height="2" fill="#5c3f1b" />
+</svg>
