@@ -16,6 +16,7 @@ export function MissionPanel({
   moves,
   pushes,
   best,
+  bare = false,
   onSelectLevel,
 }: {
   levelName: string;
@@ -25,10 +26,13 @@ export function MissionPanel({
   moves: number;
   pushes: number;
   best: number | null;
+  /** Drop the card frame — for the narrow-screen popover, whose own frame is
+      the same 8bitcn treatment and would otherwise draw a second border. */
+  bare?: boolean;
   onSelectLevel: (index: number) => void;
 }) {
-  return (
-    <Card className="mission" aria-label="Mission status" asChild={false}>
+  const content = (
+    <>
       <CardHeader className="mission__head">
         <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={onSelectLevel} />
         <CardTitle className="mission__name">{levelName}</CardTitle>
@@ -64,6 +68,17 @@ export function MissionPanel({
 
         <p className="mission__briefing">{briefing}</p>
       </CardContent>
+    </>
+  );
+
+  if (bare) return content;
+
+  // No asChild here: the 8bitcn card declares the prop but never consumes it,
+  // so it spread through onto the div and React warned about an unknown DOM
+  // attribute. There is no asChild behaviour to opt out of.
+  return (
+    <Card className="mission" aria-label="Mission status">
+      {content}
     </Card>
   );
 }

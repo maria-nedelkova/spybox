@@ -76,6 +76,19 @@ export function App() {
     return <CharacterSelect onSelect={setCharacter} />;
   }
 
+  // The same panel appears in the rail on a wide screen and inside the level
+  // button's popover on a narrow one; only ever one of the two is rendered.
+  const missionProps = {
+    levelName: level.name,
+    levelIndex,
+    levelNames,
+    briefing,
+    moves: state.moves,
+    pushes: state.pushes,
+    best,
+    onSelectLevel: goToLevel,
+  };
+
   return (
     <div className="app">
       <h1 className="title">SPYBOX</h1>
@@ -85,15 +98,15 @@ export function App() {
           character={character}
           canUndo={canUndo}
           muted={muted}
+          levelIndex={levelIndex}
+          levelCount={levelNames.length}
+          levelPanel={<MissionPanel {...missionProps} bare />}
           onUndo={undo}
           onReset={reset}
           onToggleMuted={toggleMuted}
           onSwitchAgent={() => setCharacter(null)}
         />
 
-        {/* The controls sit outside this row on purpose: inside it, the menu
-            and rail would centre against board-plus-controls rather than
-            against the board itself. */}
         <div className="layout__stage">
           <Board
             level={level}
@@ -101,22 +114,19 @@ export function App() {
             character={character}
             facing={facing}
             moving={isMoving}
+            onSwipe={applyMove}
           />
         </div>
 
-        <MissionPanel
-          levelName={level.name}
-          levelIndex={levelIndex}
-          levelNames={levelNames}
-          briefing={briefing}
-          moves={state.moves}
-          pushes={state.pushes}
-          best={best}
-          onSelectLevel={goToLevel}
-        />
-      </div>
+        {/* Same job as .layout__stage: a plain cell the grid can stretch, so
+            the card inside it can shrink to the row on a short viewport
+            instead of pushing the touch controls off the bottom. */}
+        <div className="layout__rail">
+          <MissionPanel {...missionProps} />
+        </div>
 
-      <TouchControls onMove={applyMove} />
+        <TouchControls onMove={applyMove} />
+      </div>
 
       {won && (
         // Overlaid rather than stacked under the board: adding a block to the

@@ -86,35 +86,91 @@ body {
   margin: 0;
 }
 
+/* Fixed height, not min-height: the touch controls are the last row, and a
+   growing page would push them off the bottom of a short viewport with no
+   way back to them. Pinning the height makes the layout row the only part
+   that can flex, so the controls are always on screen. */
 .app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
+  /* Matches the padding above the title, so the game name sits in an even
+     band of space rather than closer to the board than to the top edge. */
+  gap: 1.25rem;
+  /* Generous at the sides: between the layout's 88rem cap and the window
+     edge there is nothing but this padding, so at in-between widths the menu
+     and the mission rail would otherwise sit right against the frame of the
+     window. The 8bitcn borders bleed 6px outside their boxes too, which eats
+     into whatever is left. */
+  padding: 1.25rem 2.5rem;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
 }
 
-/* Title across the top; menu, board and mission rail share the row below it.
-   The side columns are fixed-width so the board keeps a stable centre as the
-   counters change width. */
+/* Title across the top; menu, board and mission rail share the row below it,
+   with the touch controls in a second row under the board. The side columns
+   are fixed-width so the board keeps a stable centre as the counters change
+   width. */
 .layout {
   display: grid;
-  grid-template-columns: var(--menu-width) minmax(0, 1fr) var(--rail-width);
-  align-items: center;
+  /* The middle track hugs the board rather than taking all the slack, so the
+     menu and rail stay a fixed 4rem from the board's edges instead of
+     drifting off with the window. Board.tsx sizes the board from the row
+     width minus these two fixed columns, which is what keeps that from
+     becoming a loop of board-sizes-column-sizes-board. */
+  grid-template-columns: var(--menu-width) auto var(--rail-width);
+  /* An implicit auto row would size to the tallest column, which is how the
+     mission rail used to push the touch controls off a short viewport. A
+     pinned first track plus stretched columns gives all three a definite
+     height to fit inside; each then centres its own contents. */
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: stretch;
+  justify-content: center;
   gap: 1.5rem 4rem;
   width: 100%;
   max-width: 88rem;
+  /* Takes exactly the space the title leaves over — flex-basis 0 means the
+     grid's height no longer depends on how tall its own contents are, which
+     is what gives the columns a definite height to fit inside. */
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Placed explicitly rather than by source order, since the touch controls sit
+   in a second row under the board rather than beside it. */
+.menu {
+  grid-area: 1 / 1;
+}
+
+.layout__stage {
+  grid-area: 1 / 2;
+}
+
+.layout__rail {
+  grid-area: 1 / 3;
+}
+
+.touch-controls {
+  grid-area: 2 / 2;
+  justify-self: center;
 }
 
 .layout__stage {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   min-width: 0;
+  min-height: 0;
+}
+
+.layout__rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
 }
 
 /* ---------- Left menu ---------- */
@@ -127,8 +183,16 @@ body {
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 1.25rem;
   width: 100%;
+  /* Scroll rather than overrun the row on a short viewport. The horizontal
+     padding is what the 8bitcn button frames bleed into — an overflow
+     container clips at its padding box, and 6px of border sits outside each
+     button's own box. */
+  min-height: 0;
+  overflow-y: auto;
+  padding-inline: 0.5rem;
 }
 
 .menu__item {
@@ -144,6 +208,13 @@ body {
   justify-content: start;
 }
 
+/* The mission rail carries the level card wherever the rail is on show, so
+   the menu's level button — which opens that same panel in a popover — only
+   earns its place once the rail is gone. */
+.menu__item--level {
+  display: none;
+}
+
 .menu__icon {
   display: flex;
   align-items: center;
@@ -152,9 +223,22 @@ body {
   line-height: 1;
 }
 
+/* The other icons are text and stretch to fill the cell, so their own
+   centring does the work. This one has a fixed size, which parks it at the
+   start of the cell instead — only visible once the labels go and the cell
+   grows wider than the portrait. */
 .menu__icon--avatar {
   width: 1.8rem;
   height: 1.8rem;
+  justify-self: center;
+}
+
+/* Two digits, not a glyph — at icon size the level number reads as a label
+   rather than a number, and it is the only place the level shows once the
+   rail is gone. */
+.menu__icon--level {
+  font-size: 0.86rem;
+  letter-spacing: 0.05em;
 }
 
 .menu__avatar {
@@ -167,6 +251,16 @@ body {
   letter-spacing: 0.04em;
 }
 
+.menu__item {
+  background-color: var(--card);
+  color: var(--secondary);
+}
+
+.menu__item:hover:not(:disabled) {
+  background-color: color-mix(in oklab, var(--secondary) 16%, var(--card));
+}
+
+
 .menu__state {
   font-size: 0.82rem;
   opacity: 0.7;
@@ -175,6 +269,66 @@ body {
 /* ---------- Right mission rail ---------- */
 
 /* Framing comes from the 8bitcn card, so this only sets spacing. */
+
+/* The popover brings its own 8bitcn frame — the same border treatment as the
+   card — so the panel inside is rendered bare and the spacing comes from the
+   panel's head and body rather than the popover's default padding. */
+.mission-popover {
+  width: var(--rail-width);
+  max-width: calc(100vw - 2rem);
+  padding: 0;
+}
+
+/* Smaller type than the rail version. The popover only exists below the
+   narrow breakpoint, so this is the level card as it appears on a phone,
+   where it is an overlay covering the board rather than a panel with a
+   column of its own — the sooner it is read and dismissed the better. */
+.mission-popover .level-nav__current {
+  font-size: 0.92rem;
+}
+
+.mission-popover .level-nav__step {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.45rem;
+}
+
+.mission-popover .level-nav__kicker,
+.mission-popover .level-nav__total,
+.mission-popover .level-nav__caret {
+  font-size: 0.68rem;
+}
+
+.mission-popover .mission__name {
+  font-size: 0.92rem;
+}
+
+.mission-popover .mission__stat {
+  font-size: 0.8rem;
+}
+
+.mission-popover .mission__briefing {
+  font-size: 0.72rem;
+}
+
+.mission-popover .level-nav__tile {
+  height: 1.7rem;
+  font-size: 0.72rem;
+}
+
+.mission-popover .level-nav__panel {
+  grid-template-columns: repeat(8, 1.7rem);
+}
+
+/* Hug the briefing when the row has space, shrink when it doesn't — which is
+   just what a flex item does once min-height stops defaulting to its own
+   content. `display: flex` hands the resulting height down to the card
+   inside: the 8bitcn card puts its className on both the frame wrapper and
+   the card itself, so `.mission` matches two elements and the child
+   combinator picks out the outer, frame-bearing one. */
+.layout__rail > .mission {
+  display: flex;
+  min-height: 0;
+}
 
 .mission__head {
   display: flex;
@@ -192,11 +346,17 @@ body {
   color: var(--accent);
 }
 
+/* The body, not the card, is the scroll container: the card's side borders
+   are an absolutely-positioned overlay sitting 6px outside its box, and an
+   overflow container would clip them. The header stays put and only the
+   stats and briefing move. */
 .mission__body {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
   padding: 0 1rem 1rem;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .mission__stats {
@@ -234,34 +394,83 @@ body {
   opacity: 0.8;
 }
 
-/* Narrow viewports: drop the rails under the board, menu back to a row. */
-@media (max-width: 60rem) {
+/* Narrow viewports: the board and a menu bar underneath it, and nothing
+   else. The three-column layout needs the menu and rail (17rem each) plus
+   two 4rem gaps before the board gets anything, so below about this width it
+   is squeezing the board to keep two side panels that no longer fit. The
+   rail becomes a level button that opens the same panel in a popover, the
+   menu becomes a grouped icon bar — see SideMenu's COMPACT_QUERY, which
+   swaps the list for a ButtonGroup at this same width — and the d-pad is
+   dropped in favour of swiping the board (hidden further down the file,
+   where it can outrank .touch-controls' own display rule). */
+@media (max-width: 72rem) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
+    grid-template-rows: minmax(0, 1fr) auto;
+    row-gap: 0;
+  }
+
+  .layout__rail {
+    display: none;
   }
 
   .layout__stage {
-    order: -1;
+    grid-area: 1 / 1;
   }
 
   .menu {
-    flex-direction: row;
-    flex-wrap: wrap;
+    grid-area: 2 / 1;
+    /* the three-column layout pins this to --menu-width; let it shrink here */
+    width: auto;
+  }
+
+  .menu__item,
+  .menu__item--level {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    grid-template-columns: 1fr;
     justify-content: center;
-    /* the three-column layout pins this to --menu-width; let it reflow here */
-    width: auto;
   }
 
-  .menu__item {
-    width: auto;
-    grid-template-columns: 1.8rem auto;
-  }
-
+  /* Icon-only, but the labels stay in the DOM rather than being display:none
+     so each button keeps its accessible name. */
+  .menu__label,
   .menu__state {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The group draws one shared frame around the whole bar, so the buttons sit
+     flush against each other and the spacing that separated them is gone.
+     The padding is what the panel breathes into — its frame is drawn 6px
+     outside the box, so with none it lands hard against the board above and
+     the window below. */
+  .menu--panel {
+    display: flex;
+    /* The base menu is a column; without resetting that, the group stretches
+       to the full width instead of hugging its buttons. */
+    flex-direction: row;
+    justify-content: center;
+    gap: 0;
+    padding: 1rem 0.75rem;
+    overflow: visible;
+  }
+
+  .menu--panel .menu__item {
+    width: 3rem;
+    height: 3rem;
   }
 }
+
+/* The phone-in-landscape layout lives at the end of this file, after the
+   .touch-controls rules it has to override. */
 
 /* ---------- Board: terrain grid + absolutely-positioned token layer ---------- */
 
@@ -271,6 +480,10 @@ body {
   background: var(--table);
   border: 3px solid var(--ring);
   border-radius: 0;
+  /* The board is a swipe surface in every layout (see useSwipe), so the
+     browser's own touch gestures have to keep off it everywhere — not just
+     on the phone, where the swipe is the only way to move. */
+  touch-action: none;
 }
 
 .board__terrain {
@@ -463,11 +676,19 @@ body {
   cursor: default;
 }
 
+/* Black on the accent yellow, not --accent-foreground: that token is a teal,
+   which is legible on the card but muddy against the fill it is named for. */
 .level-nav__step:not(:disabled):hover,
 .level-nav__current:hover {
-  color: var(--accent-foreground);
+  color: #000;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+/* The number is accent-coloured by default, so it would vanish into the
+   fill. It takes the same black as the rest of the label. */
+.level-nav__current:hover .level-nav__num {
+  color: #000;
 }
 
 .level-nav__current {
@@ -632,29 +853,33 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 3.6rem);
   grid-template-rows: repeat(2, 3.6rem);
-  gap: 0.4rem;
+  /* The 8bitcn border sits 6px outside the button box, so a 12px gap makes
+     neighbouring frames touch and read as one slab — this leaves a little
+     more so each key stays a distinct button. */
+  gap: 1.1rem;
   justify-content: center;
+  /* Same job as the menu panel's padding: this is the last row on the page,
+     and the bottom keys' frames would otherwise sit hard against the edge of
+     the window. Board.tsx counts this in the height budget, so the board
+     gives the room up rather than overflowing. */
+  padding-bottom: 1rem;
 }
 
+/* Framing (border, press state) comes from the 8bitcn button; this only sizes
+   the cell and colours it like the side-menu items. */
 .touch-controls__btn {
-  font-family: var(--font-display);
-  font-size: 1.56rem;
-  color: var(--text);
-  background: var(--panel);
-  border: 2px solid var(--border);
-  border-radius: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  font-size: 1.35rem;
+  background-color: var(--card);
+  color: var(--secondary);
   touch-action: manipulation;
   user-select: none;
 }
 
-.touch-controls__btn:hover,
-.touch-controls__btn:active {
-  border-color: var(--goal-ring);
-  color: var(--goal-ring);
+.touch-controls__btn:hover:not(:disabled) {
+  background-color: color-mix(in oklab, var(--secondary) 16%, var(--card));
 }
 
 .touch-controls__btn--up {
@@ -675,4 +900,134 @@ body {
 .touch-controls__btn--right {
   grid-column: 3;
   grid-row: 2;
+}
+
+/* ---------- Where the d-pad is dropped ---------- */
+
+/* Both of these have to sit after .touch-controls' own display rule above.
+   They are single-class selectors too, so only source order separates them,
+   and up with the breakpoints they would silently lose. */
+
+/* Narrow: the board and the menu bar under it, and nothing else. Movement is
+   a swipe on the board (see useSwipe), which the d-pad would only duplicate
+   at the cost of a third row. */
+@media (max-width: 72rem) {
+  .touch-controls {
+    display: none;
+  }
+}
+
+/* Short viewport on a pointer device — a laptop, in practice. The d-pad is a
+   touch affordance, and here it only competes with the board for height that
+   the keyboard already covers, so drop it and give the board the room back
+   rather than shrinking the board to fit it. Coarse pointers keep the d-pad
+   at every height: that is where it is the only way to play. */
+@media (max-height: 56rem) and (pointer: fine) {
+  .touch-controls {
+    display: none;
+  }
+}
+
+/* ---------- Phone in landscape ---------- */
+
+/* The levels are wide rooms — up to 11x7 — so a sideways phone is the shape
+   that suits them, and it is the orientation the game asks for. Two things
+   on screen and no more: the board, and the menu panel beside it. The title
+   costs a sixth of the height here, and the d-pad is replaced by swiping the
+   board directly (see useSwipe) rather than spending a third of the width on
+   a control that duplicates it.
+
+   The d-pad is already gone by here — a phone is inside the narrow rule
+   above — so this only has the title left to hide. */
+@media (max-height: 30rem) and (orientation: landscape) and (pointer: coarse) {
+  .title {
+    display: none;
+  }
+
+  .app {
+    gap: 0;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Both columns hug, so the pair centres as a unit and the board sits a
+     fixed gap from the menu rather than floating in the middle of whatever
+     width is left over. */
+  .layout {
+    grid-template-columns: auto auto;
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: 1rem;
+    row-gap: 0;
+  }
+
+  .menu {
+    grid-area: 1 / 1;
+  }
+
+  .layout__stage {
+    grid-area: 1 / 2;
+  }
+
+  /* Stacked rather than a bar, so the panel costs width — of which there is
+     plenty in landscape — instead of the height the board needs. The bar's
+     roomier padding is turned down for the same reason. */
+  .menu--panel {
+    align-self: center;
+    flex-direction: column;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .menu--panel .menu__item {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* ---------- Landscape-only on phones ---------- */
+
+.rotate-notice {
+  display: none;
+}
+
+/* A narrow portrait viewport with a coarse pointer is a phone held upright.
+   The max-width keeps tablets out of it — portrait on a tablet has room for
+   the stacked layout. Last in the file so hiding .app and .character-select
+   outranks their own display rules. */
+@media (orientation: portrait) and (max-width: 36rem) and (pointer: coarse) {
+  .app,
+  .character-select {
+    display: none;
+  }
+
+  .rotate-notice {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    background: var(--bg);
+  }
+
+  .rotate-notice__icon {
+    margin: 0;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .rotate-notice__text {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--foreground);
+  }
+
+  .rotate-notice__hint {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
 }
