@@ -81,7 +81,12 @@ body {
 .title {
   /* Scales with the window rather than stepping at a breakpoint, so the name
      shrinks as the board does instead of staying big enough to crowd it. */
-  font-size: clamp(1.35rem, 3.4vw, 2.2rem);
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  /* The inherited 1.5 put 9px of leading above and below the glyphs, so the
+     name read as 73px clear of the board while the menu and rail either side
+     of it were a true 64. Boxing the text tightly makes the four gaps look
+     the same, not just measure the same. */
+  line-height: 1;
   letter-spacing: 0.15em;
   color: var(--goal-ring);
   text-shadow: 4px 4px 0 #000;
