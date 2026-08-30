@@ -106,9 +106,9 @@ export function App() {
           onSwitchAgent={() => setCharacter(null)}
         />
 
-        {/* The title lives in here rather than above the row so it can be
-            centred in the space over the board — the stage is the only box
-            that knows where the board's top edge is. */}
+        {/* The title and the d-pad live in here rather than in the row
+            outside it, which is what lets both sit a fixed distance from the
+            board's edge — the same distance the menu and rail keep. */}
         <div className="layout__stage">
           <h1 className="title">SPYBOX</h1>
 
@@ -144,6 +144,8 @@ export function App() {
               </div>
             )}
           </Board>
+
+          <TouchControls onMove={applyMove} />
         </div>
 
         {/* Same job as .layout__stage: a plain cell the grid can stretch, so
@@ -152,8 +154,6 @@ export function App() {
         <div className="layout__rail">
           <MissionPanel {...missionProps} />
         </div>
-
-        <TouchControls onMove={applyMove} />
       </div>
     </div>
   );

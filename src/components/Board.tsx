@@ -82,66 +82,61 @@ export function Board({
   // Shrink the cells (never past MAX_CELL_PX) so even the widest/tallest level
   // fits without scrolling.
   //
-  // The height budget is deliberately derived from the title and the touch
-  // controls rather than from the board's own position on screen. The page is
-  // vertically centred, so measuring the board's top would be self-referential:
-  // a smaller board leaves more free space, centring pushes the board further
-  // down, the budget shrinks again, and the cells collapse. Sizing against
-  // siblings whose height does not depend on the board breaks that loop.
+  // Height comes from the stage, the box the board shares with the title and
+  // the d-pad. Its own height is settled before the board is sized — it is
+  // the layout's minmax(0, 1fr) row, which cannot be grown by its contents —
+  // so measuring it is not the loop that measuring the board's own position
+  // would be. It also means anything outside the stage needs no accounting
+  // at all: the menu bar under the board on a narrow screen has already been
+  // taken out of the stage's height by the grid.
   //
-  // Width has the same problem from the other direction. The board's own
-  // column hugs it, so that the menu and rail sit a fixed distance from the
-  // board's edges rather than drifting off with the window — which means the
-  // column's width is the board's width and measuring it would be circular
-  // too. The menu, rail and d-pad are all sized independently of the board,
-  // so the row's width minus whichever of them is beside it is a budget that
-  // does not depend on the board at all.
-  //
-  // Which of them is beside it changes with the layout: the rail is dropped
-  // on a narrow screen, the menu drops under the board there, and on a
-  // sideways phone the d-pad moves out of the row below and in alongside.
-  // So each one is charged to width or to height depending on whether it
-  // shares the board's grid row — reading the placement rather than guessing
-  // it from geometry.
+  // Width cannot work the same way, because the board's column hugs it so
+  // that the menu and rail keep a fixed distance from its edges — the
+  // column's width *is* the board's width. The menu and rail are sized
+  // independently of the board, so the row's width minus whichever of them
+  // is beside it is a budget that does not depend on the board at all. Which
+  // of them that is changes with the layout, so each is charged by whether
+  // it shares the board's grid row rather than by guessing from geometry.
   useLayoutEffect(() => {
     function recalc() {
       const el = boardRef.current;
       if (!el) return;
-      const app = el.closest(".app");
       const layout = el.closest<HTMLElement>(".layout");
       const stage = el.parentElement;
-      const title = app?.querySelector<HTMLElement>(".title");
+      if (!stage) return;
 
-      const stageRow = stage ? getComputedStyle(stage).gridRowStart : "";
-      const siblings = [
+      const stageRow = getComputedStyle(stage).gridRowStart;
+      const beside = [
         layout?.querySelector<HTMLElement>(".menu"),
         layout?.querySelector<HTMLElement>(".layout__rail"),
-        layout?.querySelector<HTMLElement>(".touch-controls"),
-      ].filter((node): node is HTMLElement => !!node && node.offsetWidth > 0);
-      const beside = siblings.filter(
-        (node) => getComputedStyle(node).gridRowStart === stageRow
+      ].filter(
+        (node): node is HTMLElement =>
+          !!node &&
+          node.offsetWidth > 0 &&
+          getComputedStyle(node).gridRowStart === stageRow
       );
-      const above = siblings.filter((node) => !beside.includes(node));
 
-      const layoutStyles = layout ? getComputedStyle(layout) : null;
-      const columnGap = layoutStyles ? parseFloat(layoutStyles.columnGap) || 0 : 0;
-      const rowGap = layoutStyles ? parseFloat(layoutStyles.rowGap) || 0 : 0;
+      // Stacked with the board inside the stage: the title above, the d-pad
+      // below. Either can be hidden, in which case it costs nothing.
+      const stacked = [...stage.children].filter(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement && node !== el && node.offsetHeight > 0
+      );
 
-      // Measured rather than a fixed allowance: the page's padding and the
-      // gap under the title both shrink on a sideways phone, and a constant
-      // tuned for the desktop layout charged the board about 56px it could
-      // have used — a seventh of the height there.
-      const appStyles = app instanceof HTMLElement ? getComputedStyle(app) : null;
-      const titleHeight = title?.offsetHeight ?? 0;
-      const chrome =
-        (appStyles
-          ? parseFloat(appStyles.paddingTop) + parseFloat(appStyles.paddingBottom)
-          : 0) +
-        titleHeight +
-        (titleHeight > 0 && appStyles ? parseFloat(appStyles.rowGap) || 0 : 0) +
-        above.reduce((total, node) => total + node.offsetHeight + rowGap, 0) +
+      const stageStyles = getComputedStyle(stage);
+      const columnGap = layout ? parseFloat(getComputedStyle(layout).columnGap) || 0 : 0;
+
+      // Gaps are charged per track, not per visible neighbour: the stage's
+      // rows exist whether or not anything is in them, so hiding the title or
+      // the d-pad frees their height but not the gap beside it.
+      const tracks = stageStyles.gridTemplateRows.split(" ").filter(Boolean).length;
+      const rowGaps = Math.max(0, tracks - 1) * (parseFloat(stageStyles.rowGap) || 0);
+
+      const availableHeight =
+        stage.clientHeight -
+        stacked.reduce((total, node) => total + node.offsetHeight, 0) -
+        rowGaps -
         SAFETY_PX;
-      const availableHeight = window.innerHeight - chrome;
       const availableWidth =
         (layout?.clientWidth ?? window.innerWidth) -
         beside.reduce((total, node) => total + node.offsetWidth + columnGap, 0);
