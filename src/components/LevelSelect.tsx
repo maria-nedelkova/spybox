@@ -20,10 +20,13 @@ function pad(n: number): string {
 export function LevelSelect({
   names,
   activeIndex,
+  unlockedCount,
   onSelect,
 }: {
   names: readonly string[];
   activeIndex: number;
+  /** Levels below this are playable; the rest are locked. */
+  unlockedCount: number;
   onSelect: (index: number) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -65,7 +68,11 @@ export function LevelSelect({
     }
     if (!NAV_KEYS.includes(event.key)) return;
 
-    const tiles = [...(panelRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [])];
+    // Locked tiles are disabled and cannot take focus, so roving past them
+    // would strand the caret on a tile that never highlights.
+    const tiles = [
+      ...(panelRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []),
+    ];
     const current = tiles.indexOf(document.activeElement as HTMLButtonElement);
     if (current < 0) return;
 
@@ -129,9 +136,13 @@ export function LevelSelect({
         type="button"
         className="level-nav__step"
         onClick={() => onSelect(activeIndex + 1)}
-        disabled={activeIndex === names.length - 1}
+        disabled={activeIndex + 1 >= unlockedCount}
         aria-label="Next level"
-        title="Next level"
+        title={
+          activeIndex + 1 >= unlockedCount
+            ? "Finish this level to carry on"
+            : "Next level"
+        }
       >
         ▶
       </button>
@@ -144,23 +155,36 @@ export function LevelSelect({
           role="dialog"
           aria-label="Select level"
         >
-          {names.map((name, i) => (
-            <button
-              key={`${i}-${name}`}
-              type="button"
-              data-active={i === activeIndex}
-              aria-current={i === activeIndex ? "true" : undefined}
-              aria-label={`Level ${i + 1}: ${name}`}
-              title={`${i + 1}. ${name}`}
-              className={cn("level-nav__tile", i === activeIndex && "level-nav__tile--active")}
-              onClick={() => {
-                onSelect(i);
-                close();
-              }}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {names.map((name, i) => {
+            // Locked levels keep their number but not their name: it is the
+            // one thing about a level you have not reached that is worth not
+            // giving away.
+            const locked = i >= unlockedCount;
+            return (
+              <button
+                key={`${i}-${name}`}
+                type="button"
+                disabled={locked}
+                data-active={i === activeIndex}
+                aria-current={i === activeIndex ? "true" : undefined}
+                aria-label={locked ? `Level ${i + 1}: locked` : `Level ${i + 1}: ${name}`}
+                title={
+                  locked ? `Locked — finish level ${unlockedCount}` : `${i + 1}. ${name}`
+                }
+                className={cn(
+                  "level-nav__tile",
+                  i === activeIndex && "level-nav__tile--active",
+                  locked && "level-nav__tile--locked",
+                )}
+                onClick={() => {
+                  onSelect(i);
+                  close();
+                }}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

@@ -836,6 +836,17 @@ body {
   border-color: var(--accent);
 }
 
+/* Dimmed rather than hidden: the run is 32 levels and seeing how far it
+   goes is part of the draw. Matches the stepper arrows' disabled state. */
+.level-nav__tile--locked {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.level-nav__tile--locked:hover {
+  border-color: var(--border);
+}
+
 .level-nav__step:focus-visible,
 .level-nav__current:focus-visible,
 .level-nav__tile:focus-visible,

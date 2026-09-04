@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Board } from "@/components/Board";
 import { CharacterSelect } from "@/components/CharacterSelect";
 import { MissionPanel } from "@/components/MissionPanel";
@@ -9,6 +9,7 @@ import type { CharacterId } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
 import { loadBest, recordScore } from "@/lib/bestScore";
+import { unlockedCount } from "@/lib/progress";
 import { playSound } from "@/lib/sound";
 
 export function App() {
@@ -73,6 +74,21 @@ export function App() {
     setBest(loadBest(level.name));
   }, [level.name, scoreResult]);
 
+  // Progress is read back out of the best scores rather than tracked
+  // separately — finishing a level is what records one. Recomputed when a
+  // score is banked, which is the only thing that can open a new level.
+  const unlocked = useMemo(() => unlockedCount(levelNames), [levelNames, scoreResult]);
+
+  // The picker disables locked tiles, but the handler refuses them too: a
+  // stale click or a keyboard shortcut should not be able to skip ahead.
+  const goToUnlockedLevel = useCallback(
+    (index: number) => {
+      if (index >= unlocked) return;
+      goToLevel(index);
+    },
+    [goToLevel, unlocked],
+  );
+
   if (!character) {
     return <CharacterSelect onSelect={setCharacter} />;
   }
@@ -83,11 +99,12 @@ export function App() {
     levelName: level.name,
     levelIndex,
     levelNames,
+    unlockedCount: unlocked,
     briefing,
     moves: state.moves,
     pushes: state.pushes,
     best,
-    onSelectLevel: goToLevel,
+    onSelectLevel: goToUnlockedLevel,
   };
 
   return (

@@ -12,6 +12,7 @@ export function MissionPanel({
   levelName,
   levelIndex,
   levelNames,
+  unlockedCount,
   briefing,
   moves,
   pushes,
@@ -22,6 +23,7 @@ export function MissionPanel({
   levelName: string;
   levelIndex: number;
   levelNames: readonly string[];
+  unlockedCount: number;
   briefing: string;
   moves: number;
   pushes: number;
@@ -34,7 +36,12 @@ export function MissionPanel({
   const content = (
     <>
       <CardHeader className="mission__head">
-        <LevelSelect names={levelNames} activeIndex={levelIndex} onSelect={onSelectLevel} />
+        <LevelSelect
+          names={levelNames}
+          activeIndex={levelIndex}
+          unlockedCount={unlockedCount}
+          onSelect={onSelectLevel}
+        />
         <CardTitle className="mission__name">{levelName}</CardTitle>
       </CardHeader>
 
