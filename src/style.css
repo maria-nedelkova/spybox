@@ -7,7 +7,6 @@
      corridors and alcoves as the actual puzzle, so the layout has to read
      at a glance rather than being a near-black-on-black texture. */
   --wall: #2f3a49;
-  --wall-edge: #4a5b70;
   --floor: #1a2028;
   --goal-ring: #d4af6a;
   --text: #eef1f5;
@@ -62,8 +61,8 @@ body {
   /* Walls must stay clearly lighter than the floor — the levels use interior
      walls as the actual puzzle, so the layout has to read at a glance. */
   --wall: var(--card);
-  --wall-edge: color-mix(in oklab, var(--card) 55%, white);
-  --wall-mortar: color-mix(in oklab, var(--card) 62%, black);
+  /* The shaded side of a plate: its lower-right bevel and its rivets. */
+  --wall-shade: color-mix(in oklab, var(--card) 62%, black);
   --floor: color-mix(in oklab, var(--card) 38%, black);
 
   --goal-ring: var(--accent);
@@ -558,58 +557,31 @@ body {
   background: transparent;
 }
 
-/* Brickwork rather than a flat slab, which read as empty at this size.
-   No per-cell border, and the outer shadow bleeds the wall colour 1px past
-   the box on every side to close the board's 2px cell gap: neighbouring
-   walls then merge into one mass for the courses to run across, while floor
-   tiles keep their grid lines. The inset lines light the top of each block
-   and shade its foot. */
+/* ---------- Walls: riveted steel plate ---------- */
+
+/* Bevelled top-left to bottom-right with a rivet in each corner, which
+   rhymes with the bolts on the crates. Four dots and an edge, so nothing
+   turns to mush when the board shrinks.
+
+   No per-cell border: the outer shadow bleeds the wall colour 1px past the
+   box on every side to close the board's 2px cell gap, so neighbouring walls
+   merge into one plate while floor tiles keep their grid lines. Detail scales
+   with the cell, or a 2px rivet that reads on a 72px plate swallows a 14px
+   one on a phone. */
 .cell--wall {
-  /* Joints scale with the cell, or a 2px line that reads as mortar on a 72px
-     block swallows a 14px one on a phone. */
   --wall-line: max(1px, calc(var(--cell-size) / 28));
   --wall-lit: color-mix(in oklab, var(--card) 42%, white);
 
-  background: var(--wall);
+  background-color: var(--wall);
+  background-image:
+    radial-gradient(circle at 22% 22%, var(--wall-shade) 0 var(--wall-line), transparent var(--wall-line)),
+    radial-gradient(circle at 78% 22%, var(--wall-shade) 0 var(--wall-line), transparent var(--wall-line)),
+    radial-gradient(circle at 22% 78%, var(--wall-shade) 0 var(--wall-line), transparent var(--wall-line)),
+    radial-gradient(circle at 78% 78%, var(--wall-shade) 0 var(--wall-line), transparent var(--wall-line));
   box-shadow:
     0 0 0 1px var(--wall),
-    inset 0 var(--wall-line) 0 var(--wall-lit),
-    inset 0 calc(-1 * var(--wall-line)) 0 var(--wall-mortar);
-}
-
-/* Two joints make a running bond: one course line across the middle of every
-   cell, and one perpend down the top half only. Because the perpend stops at
-   the halfway line, the bricks below it straddle the ones above, and the
-   stagger carries across the whole wall without any cell knowing about its
-   neighbours. */
-.cell--wall::before,
-.cell--wall::after {
-  content: "";
-  position: absolute;
-  background: var(--wall-mortar);
-}
-
-/* Mortar with the next course's lit edge under it. Between two stacked cells
-   the same pair falls out of the shade at one's foot and the highlight at
-   the next one's head, so every course line looks the same whether or not a
-   cell boundary happens to run through it. */
-.cell--wall::before {
-  left: 0;
-  right: 0;
-  top: calc(50% - var(--wall-line));
-  height: calc(var(--wall-line) * 2);
-  background: linear-gradient(
-    to bottom,
-    var(--wall-mortar) 0 var(--wall-line),
-    var(--wall-lit) var(--wall-line) 100%
-  );
-}
-
-.cell--wall::after {
-  top: 0;
-  height: 50%;
-  left: calc(50% - var(--wall-line) / 2);
-  width: var(--wall-line);
+    inset var(--wall-line) var(--wall-line) 0 var(--wall-lit),
+    inset calc(-1 * var(--wall-line)) calc(-1 * var(--wall-line)) 0 var(--wall-shade);
 }
 
 .cell--floor {
