@@ -13,6 +13,7 @@ export function MissionPanel({
   levelIndex,
   levelNames,
   unlockedCount,
+  onUnlockAll,
   briefing,
   moves,
   pushes,
@@ -24,6 +25,7 @@ export function MissionPanel({
   levelIndex: number;
   levelNames: readonly string[];
   unlockedCount: number;
+  onUnlockAll: () => void;
   briefing: string;
   moves: number;
   pushes: number;
@@ -40,6 +42,7 @@ export function MissionPanel({
           names={levelNames}
           activeIndex={levelIndex}
           unlockedCount={unlockedCount}
+          onUnlockAll={onUnlockAll}
           onSelect={onSelectLevel}
         />
         <CardTitle className="mission__name">{levelName}</CardTitle>

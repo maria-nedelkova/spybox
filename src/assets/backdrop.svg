@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <title>Mission briefing schematics</title>
+  <!--
+    Decorative backdrop: blueprint panels pinned to the corners with a
+    starfield between them. Drawn at a fixed 1600x900 and sliced to cover, so
+    the corner panels stay in the corners at any aspect ratio and the middle,
+    where the board sits, stays quiet.
+
+    Everything is faint on purpose. The board has to stay the most legible
+    thing on screen, so nothing here goes above about 30% opacity.
+
+    Note: no double hyphens anywhere in these comments. This file is parsed
+    as XML when loaded as an image, and a double hyphen inside a comment is
+    malformed enough to make the whole thing fail to decode.
+  -->
+
+  <defs>
+    <g id="reticle">
+      <circle r="26" fill="none" stroke="#5b7fb0" stroke-width="1.5" />
+      <circle r="10" fill="none" stroke="#5b7fb0" stroke-width="1" />
+      <path d="M0 -40 V-14 M0 14 V40 M-40 0 H-14 M14 0 H40"
+            stroke="#5b7fb0" stroke-width="1.5" />
+    </g>
+
+    <g id="chip">
+      <rect width="54" height="30" fill="none" stroke="#4d70a0" stroke-width="1.4" />
+      <path d="M12 0 V-8 M27 0 V-8 M42 0 V-8 M12 30 V38 M27 30 V38 M42 30 V38"
+            stroke="#4d70a0" stroke-width="1.2" />
+    </g>
+  </defs>
+
+  <!-- Starfield. Sparse near the corners so it does not fight the panels. -->
+  <g fill="#dce6f5">
+    <g opacity="0.55">
+      <circle cx="512" cy="96" r="1.6" /><circle cx="690" cy="58" r="1.2" />
+      <circle cx="845" cy="128" r="1.7" /><circle cx="1004" cy="74" r="1.3" />
+      <circle cx="600" cy="212" r="1.2" /><circle cx="930" cy="248" r="1.5" />
+      <circle cx="742" cy="332" r="1.2" /><circle cx="1090" cy="196" r="1.4" />
+      <circle cx="468" cy="286" r="1.3" /><circle cx="1180" cy="330" r="1.2" />
+      <circle cx="820" cy="430" r="1.3" /><circle cx="560" cy="470" r="1.2" />
+      <circle cx="1130" cy="470" r="1.4" /><circle cx="392" cy="150" r="1.2" />
+    </g>
+    <g opacity="0.3">
+      <circle cx="452" cy="60" r="1" /><circle cx="596" cy="140" r="1" />
+      <circle cx="764" cy="66" r="1" /><circle cx="900" cy="182" r="1" />
+      <circle cx="1058" cy="140" r="1" /><circle cx="1148" cy="92" r="1" />
+      <circle cx="486" cy="380" r="1" /><circle cx="656" cy="268" r="1" />
+      <circle cx="988" cy="356" r="1" /><circle cx="1216" cy="238" r="1" />
+      <circle cx="700" cy="418" r="1" /><circle cx="1264" cy="404" r="1" />
+      <circle cx="340" cy="252" r="1" /><circle cx="878" cy="300" r="1" />
+      <circle cx="1042" cy="452" r="1" /><circle cx="620" cy="360" r="1" />
+    </g>
+  </g>
+
+  <!-- Top left: an isometric room, the kind of thing a break in plan looks like. -->
+  <g opacity="0.3" fill="none" stroke="#5b7fb0" stroke-width="1.4">
+    <rect x="70" y="24" width="360" height="230" stroke-width="1" opacity="0.7" />
+    <path d="M120 150 L250 86 L380 150 L250 214 Z" />
+    <path d="M120 150 V196 L250 260 V214 M250 214 L380 150 V196 L250 260" />
+    <path d="M185 118 L185 164 M315 118 L315 164 M250 86 V132" stroke-width="1" opacity="0.8" />
+    <path d="M150 214 L150 250 M350 214 L350 250" stroke-width="1" opacity="0.6" />
+  </g>
+  <g fill="#5b7fb0" opacity="0.4" font-family="monospace" font-size="11">
+    <text x="80" y="44">SECTOR_07</text>
+    <text x="300" y="70">SECURITY ZONES</text>
+  </g>
+
+  <!-- Top right: signal routing. -->
+  <g opacity="0.28" fill="none" stroke="#4d70a0" stroke-width="1.3">
+    <rect x="1160" y="20" width="400" height="260" stroke-width="1" opacity="0.7" />
+    <use href="#chip" x="1210" y="80" />
+    <use href="#chip" x="1330" y="150" />
+    <use href="#chip" x="1450" y="80" />
+    <path d="M1264 95 H1330 M1384 165 H1450 M1300 110 V150 M1420 110 V150" />
+    <path d="M1210 210 H1520 M1260 210 V246 M1380 210 V246 M1490 210 V246" opacity="0.7" />
+    <rect x="1236" y="246" width="48" height="22" />
+    <rect x="1356" y="246" width="48" height="22" />
+    <rect x="1466" y="246" width="48" height="22" />
+  </g>
+  <g fill="#5b7fb0" opacity="0.38" font-family="monospace" font-size="11">
+    <text x="1170" y="40">TARGET_ALPHA</text>
+  </g>
+
+  <!-- Bottom left: a floor plan. -->
+  <g opacity="0.26" fill="none" stroke="#5b7fb0" stroke-width="1.3">
+    <rect x="60" y="600" width="380" height="270" stroke-width="1" opacity="0.7" />
+    <rect x="100" y="640" width="300" height="190" />
+    <path d="M100 720 H240 M240 640 V830 M320 720 H400 M320 720 V830" />
+    <path d="M130 660 H210 M130 680 H210 M130 700 H210" stroke-width="1" opacity="0.7" />
+    <path d="M262 760 H300 M262 780 H300 M262 800 H300" stroke-width="1" opacity="0.7" />
+    <circle cx="340" cy="676" r="18" stroke-width="1" />
+  </g>
+  <g fill="#5b7fb0" opacity="0.38" font-family="monospace" font-size="11">
+    <text x="70" y="620">SECTOR_07</text>
+  </g>
+
+  <!-- Bottom right: more routing, mirrored so the corners do not rhyme. -->
+  <g opacity="0.26" fill="none" stroke="#4d70a0" stroke-width="1.3">
+    <rect x="1140" y="620" width="420" height="260" stroke-width="1" opacity="0.7" />
+    <rect x="1190" y="660" width="70" height="34" />
+    <rect x="1320" y="660" width="70" height="34" />
+    <rect x="1450" y="660" width="70" height="34" />
+    <path d="M1260 677 H1320 M1390 677 H1450" />
+    <path d="M1225 694 V740 H1485 V694" />
+    <path d="M1355 694 V740" />
+    <rect x="1300" y="760" width="110" height="46" />
+    <path d="M1355 740 V760 M1355 806 V840" />
+  </g>
+  <g fill="#5b7fb0" opacity="0.38" font-family="monospace" font-size="11">
+    <text x="1150" y="640">TARGET_ALPHA</text>
+  </g>
+
+  <!-- Reticles, off to the sides where the board will not cover them. -->
+  <g opacity="0.3">
+    <use href="#reticle" x="1470" y="380" />
+    <use href="#reticle" x="120" y="470" />
+    <use href="#reticle" x="1258" y="80" transform="scale(0.6) translate(840 40)" />
+  </g>
+</svg>

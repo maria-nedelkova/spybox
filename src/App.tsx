@@ -9,7 +9,7 @@ import type { CharacterId } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
 import { loadBest, recordScore } from "@/lib/bestScore";
-import { unlockedCount } from "@/lib/progress";
+import { unlockAll, unlockedCount } from "@/lib/progress";
 import { playSound } from "@/lib/sound";
 
 export function App() {
@@ -74,13 +74,33 @@ export function App() {
     setBest(loadBest(level.name));
   }, [level.name, scoreResult]);
 
+  // Ask the browser not to evict our storage when it is short of room. Chrome
+  // decides silently from how engaged the visitor is, Firefox prompts, and
+  // Safari — where storage is cleared after seven idle days, the likeliest
+  // way to lose a save — largely ignores it. Worth the two lines, not worth
+  // relying on: that is what the recovery in the level picker is for.
+  useEffect(() => {
+    void navigator.storage?.persist?.();
+  }, []);
+
   // Progress is read back out of the best scores rather than tracked
   // separately — finishing a level is what records one. Recomputed when a
-  // score is banked, which is the only thing that can open a new level.
-  const unlocked = useMemo(() => unlockedCount(levelNames), [levelNames, scoreResult]);
+  // score is banked, which is the only thing that can open a new level, or
+  // when the player says they have played this before.
+  const [recovered, setRecovered] = useState(false);
+  const unlocked = useMemo(
+    () => unlockedCount(levelNames),
+    [levelNames, scoreResult, recovered],
+  );
 
-  // The picker disables locked tiles, but the handler refuses them too: a
-  // stale click or a keyboard shortcut should not be able to skip ahead.
+  const onUnlockAll = useCallback(() => {
+    unlockAll();
+    setRecovered(true);
+  }, []);
+
+  // The picker answers a locked tile with a reason rather than a jump, but
+  // the handler refuses one too: a stale click or a keyboard shortcut should
+  // not be able to skip ahead.
   const goToUnlockedLevel = useCallback(
     (index: number) => {
       if (index >= unlocked) return;
@@ -100,6 +120,7 @@ export function App() {
     levelIndex,
     levelNames,
     unlockedCount: unlocked,
+    onUnlockAll,
     briefing,
     moves: state.moves,
     pushes: state.pushes,

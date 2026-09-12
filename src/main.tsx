@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { Backdrop } from "./components/Backdrop";
 import { RotateNotice } from "./components/RotateNotice";
 import "./tailwind.generated.css";
 import "./style.css";
@@ -12,6 +13,7 @@ createRoot(container).render(
   <StrictMode>
     {/* Sibling of the game rather than part of it: it replaces both the
         character select and the board when a phone is held sideways. */}
+    <Backdrop />
     <RotateNotice />
     <App />
   </StrictMode>,

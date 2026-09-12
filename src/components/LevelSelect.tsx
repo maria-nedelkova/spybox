@@ -21,15 +21,23 @@ export function LevelSelect({
   names,
   activeIndex,
   unlockedCount,
+  onUnlockAll,
   onSelect,
 }: {
   names: readonly string[];
   activeIndex: number;
   /** Levels below this are playable; the rest are locked. */
   unlockedCount: number;
+  /** Opens everything, for someone whose save was cleared. */
+  onUnlockAll: () => void;
   onSelect: (index: number) => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Which locked level was reached for, if any. Clicking one is the only
+  // signal available that a player expected it to be open — there is no way
+  // to tell a cleared save from a first visit, so the way back in waits
+  // behind that click instead of advertising itself to everybody.
+  const [blocked, setBlocked] = useState<number | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -56,6 +64,7 @@ export function LevelSelect({
 
   function close() {
     setOpen(false);
+    setBlocked(null);
     toggleRef.current?.focus();
   }
 
@@ -68,10 +77,10 @@ export function LevelSelect({
     }
     if (!NAV_KEYS.includes(event.key)) return;
 
-    // Locked tiles are disabled and cannot take focus, so roving past them
-    // would strand the caret on a tile that never highlights.
+    // Tiles only: the panel also holds the recovery button, which is not part
+    // of the grid the arrow keys walk.
     const tiles = [
-      ...(panelRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []),
+      ...(panelRef.current?.querySelectorAll<HTMLButtonElement>(".level-nav__tile") ?? []),
     ];
     const current = tiles.indexOf(document.activeElement as HTMLButtonElement);
     if (current < 0) return;
@@ -164,7 +173,6 @@ export function LevelSelect({
               <button
                 key={`${i}-${name}`}
                 type="button"
-                disabled={locked}
                 data-active={i === activeIndex}
                 aria-current={i === activeIndex ? "true" : undefined}
                 aria-label={locked ? `Level ${i + 1}: locked` : `Level ${i + 1}: ${name}`}
@@ -177,6 +185,12 @@ export function LevelSelect({
                   locked && "level-nav__tile--locked",
                 )}
                 onClick={() => {
+                  // Locked tiles stay clickable so the press can be answered
+                  // with a reason rather than nothing at all.
+                  if (locked) {
+                    setBlocked(i);
+                    return;
+                  }
                   onSelect(i);
                   close();
                 }}
@@ -185,6 +199,23 @@ export function LevelSelect({
               </button>
             );
           })}
+
+          {blocked !== null && (
+            <p className="level-nav__blocked" role="status">
+              Level {blocked + 1} is locked. Finish level {unlockedCount} to
+              reach it.
+              <button
+                type="button"
+                className="level-nav__recover"
+                onClick={() => {
+                  onUnlockAll();
+                  setBlocked(null);
+                }}
+              >
+                Played before? Open everything
+              </button>
+            </p>
+          )}
         </div>
       )}
     </div>

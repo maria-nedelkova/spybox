@@ -19,14 +19,22 @@
   --menu-width: 17rem;
   --rail-width: 17rem;
   --font-display: "Press Start 2P", monospace;
+
+  /* Backdrop. Navy rather than the theme's near-black: the schematics and
+     the floor grid need something blue to sit on or they read as grey. */
+  --backdrop-base: #070c16;
+  --backdrop-line: rgb(88 126 180 / 0.16);
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* The base colour lives here, not on body. .backdrop sits at z-index -1,
+   which paints above the root's background but *below* body's — so an opaque
+   background on body would hide the whole backdrop. */
 html {
-  background: var(--bg);
+  background: var(--backdrop-base);
 }
 
 body {
@@ -37,10 +45,56 @@ body {
      floating in the middle of the viewport on short layouts. */
   align-items: flex-start;
   justify-content: center;
-  background: radial-gradient(circle at 50% -10%, #1a212b 0%, var(--bg) 60%);
+  /* Transparent so the backdrop behind it shows through; the colour is on
+     html. */
+  background: transparent;
   color: var(--text);
   font-family: var(--font-display);
   -webkit-font-smoothing: none;
+}
+
+/* ---------- Backdrop ---------- */
+
+/* Behind everything, and deaf to the mouse: a stray click near the edge of
+   the board belongs to the board. Negative z-index keeps it under the app
+   without any of the app needing to know it exists. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* The lit haze the board sits in front of. */
+  background: radial-gradient(ellipse 70% 55% at 50% 6%, #16253d 0%, transparent 72%);
+}
+
+/* The floor grid, laid flat and running to a horizon behind the board. The
+   mask fades it in from nothing so there is no hard line where it starts,
+   which is what would give away that it is a rectangle in perspective. */
+.backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 38% -60% -30%;
+  background-image:
+    repeating-linear-gradient(to right, var(--backdrop-line) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(to bottom, var(--backdrop-line) 0 1px, transparent 1px 72px);
+  transform: perspective(340px) rotateX(64deg);
+  transform-origin: 50% 0;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 70%, transparent 100%);
+}
+
+/* The blueprint panels. Stretched to the window rather than covered: cover
+   crops whichever axis is proportionally longer, which threw away the panels
+   on one side or the other at most window shapes. Line art this faint takes
+   the distortion without complaint, and keeping all four corners is the
+   whole point of the composition. */
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--backdrop-art);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 /* React mounts here. Without an explicit width this shrink-to-fits as a flex
@@ -837,14 +891,47 @@ body {
 }
 
 /* Dimmed rather than hidden: the run is 32 levels and seeing how far it
-   goes is part of the draw. Matches the stepper arrows' disabled state. */
+   goes is part of the draw. Still clickable, so pressing one can be answered
+   with a reason instead of nothing at all. */
 .level-nav__tile--locked {
   opacity: 0.35;
-  cursor: default;
 }
 
 .level-nav__tile--locked:hover {
   border-color: var(--border);
+}
+
+/* Spans the grid, under the tiles. Only ever shown after a locked tile is
+   pressed — a first-time player has no reason to press one, so this stays
+   out of the way of everyone who has not lost anything. */
+.level-nav__blocked {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--card-foreground);
+  text-align: center;
+}
+
+.level-nav__recover {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  color: var(--secondary);
+  background: color-mix(in oklab, var(--card) 70%, black);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.level-nav__recover:hover,
+.level-nav__recover:focus-visible {
+  color: #000;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .level-nav__step:focus-visible,
