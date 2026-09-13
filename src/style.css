@@ -35,6 +35,10 @@
    background on body would hide the whole backdrop. */
 html {
   background: var(--backdrop-base);
+  /* iOS inflates text on pages it judges not to be laid out for a phone,
+     which would push sizes past what the layouts here are measured against. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -1234,11 +1238,51 @@ body {
     padding: 0.75rem 0.5rem;
   }
 
-  /* The card turns on its side. Upright it is taller than a sideways phone
-     and the level grid pushed it off both ends of the screen; wide and short
-     is the shape there is room for. */
+  /* The card stops being anchored to the level button and becomes a panel
+     centred on the screen.
+
+     Anchored, it can only use whatever is left beside the menu, and on a
+     sideways phone that is not enough for it at any readable size — more so
+     if the browser is zoomed, which shrinks the viewport in CSS pixels while
+     the card's own size stays put. Making it fit *there* was the wrong
+     target; it needs the whole screen.
+
+     Radix positions the card by transforming a wrapper it owns, and a
+     transformed ancestor is what `position: fixed` resolves against, so the
+     wrapper has to be flattened before the card can use the viewport.
+
+     Unscoped because the wrapper is the card's ancestor, so there is no
+     descendant selector that reaches it. The level card is the only popover
+     in the game; a second one would need this narrowed. */
+  [data-radix-popper-content-wrapper] {
+    position: fixed !important;
+    inset: 0 !important;
+    transform: none !important;
+    min-width: 0 !important;
+    display: grid;
+    place-items: center;
+    padding: 0.75rem;
+    /* The wrapper now covers the screen, so it would otherwise catch every
+       tap meant for outside the card and Radix would never see one — leaving
+       no way to dismiss it but Escape, which a phone does not have. */
+    pointer-events: none;
+  }
+
   .mission-popover {
-    width: min(30rem, calc(100vw - 5rem));
+    pointer-events: auto;
+    width: 100%;
+    max-width: none;
+    /* Cap to the screen and let the body scroll inside, rather than the card
+       growing past both ends. */
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mission-popover .mission__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   /* Three stats in a row instead of three rows, which is most of the height
