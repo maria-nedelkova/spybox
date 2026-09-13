@@ -120,7 +120,7 @@ export function SideMenu({
     </Button>,
 
     <Button key="reset" variant="secondary" className="menu__item" onClick={onReset}>
-      <span className="menu__icon" aria-hidden="true">
+      <span className="menu__icon menu__icon--reset" aria-hidden="true">
         ↻
       </span>
       <span className="menu__label">Reset</span>
@@ -134,7 +134,7 @@ export function SideMenu({
       aria-pressed={!muted}
       title={muted ? "Sound off — click to unmute" : "Sound on — click to mute"}
     >
-      <span className="menu__icon" aria-hidden="true">
+      <span className="menu__icon menu__icon--sound" aria-hidden="true">
         {muted ? "🔇" : "🔊"}
       </span>
       <span className="menu__label">Sound</span>

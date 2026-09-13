@@ -311,6 +311,36 @@ body {
   line-height: 1;
 }
 
+/* Centring the cell is not the same as centring the glyph. Flexbox centres
+   the line box, and where the ink sits inside that box is the font's business
+   — for all three of these it sits below the middle, so the icons rode low in
+   cells that were themselves perfectly centred.
+
+   The shifts are the measured gap between each glyph's ink centre and its
+   line-box centre, in em so they hold at whatever size the icon is drawn.
+
+   Measured against the stack these icons actually inherit, which is not the
+   one on body — body falls back to monospace, the buttons to system-ui, and
+   the two resolve different fonts with metrics far enough apart to send
+   these corrections several times too far. Worth re-measuring on the element
+   itself if they are ever revisited.
+
+   Still only true for the fonts this machine resolves; another platform
+   picks its own, so these correct the bulk of the offset rather than all of
+   it everywhere. The level number and the avatar are left alone — the digits
+   are near enough centred already, and the portrait fills its box. */
+.menu__icon--undo {
+  transform: translateY(-0.033em);
+}
+
+.menu__icon--reset {
+  transform: translateY(-0.104em);
+}
+
+.menu__icon--sound {
+  transform: translateY(-0.125em);
+}
+
 /* The other icons are text and stretch to fill the cell, so their own
    centring does the work. This one has a fixed size, which parks it at the
    start of the cell instead — only visible once the labels go and the cell
