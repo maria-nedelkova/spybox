@@ -109,8 +109,12 @@ export function SideMenu({
       onClick={onUndo}
       disabled={!canUndo}
     >
+      {/* U+FE0E forces text presentation. Without it iOS draws U+21A9 as the
+          emoji ↩️ — a blue rounded key that looks nothing like the rest of
+          the set. Desktop browsers pick text on their own, so this only
+          shows up on a real phone. */}
       <span className="menu__icon" aria-hidden="true">
-        ↩
+        {"↩︎"}
       </span>
       <span className="menu__label">Undo</span>
     </Button>,

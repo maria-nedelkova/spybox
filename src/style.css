@@ -414,7 +414,15 @@ body {
   min-height: 0;
 }
 
+/* Raised above the body so the level grid, which hangs out of the header on
+   z-index 20, is not painted over by the stats below it. That z-index cannot
+   reach the body on its own: the header is a shadcn CardHeader carrying
+   `@container/card-header`, and a container-type establishes a stacking
+   context, so 20 only ranks the grid *within* the header. Ordering the two
+   blocks against each other has to happen out here. */
 .mission__head {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -525,14 +533,25 @@ body {
     width: auto;
   }
 
+  /* place-items rather than justify-content: the icon then shrinks to its
+     own size and is centred on both axes, instead of being stretched across
+     the cell and left to centre itself off its font metrics — which is what
+     left the glyphs sitting slightly off while the avatar, being a fixed-size
+     box, looked right. */
   .menu__item,
   .menu__item--level {
     display: grid;
+    place-items: center;
     width: 2.75rem;
     height: 2.75rem;
     padding: 0;
     grid-template-columns: 1fr;
-    justify-content: center;
+  }
+
+  .menu__item .menu__icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1;
   }
 
   /* Icon-only, but the labels stay in the DOM rather than being display:none
@@ -1213,6 +1232,54 @@ body {
     align-self: center;
     flex-direction: column;
     padding: 0.75rem 0.5rem;
+  }
+
+  /* The card turns on its side. Upright it is taller than a sideways phone
+     and the level grid pushed it off both ends of the screen; wide and short
+     is the shape there is room for. */
+  .mission-popover {
+    width: min(30rem, calc(100vw - 5rem));
+  }
+
+  /* Three stats in a row instead of three rows, which is most of the height
+     saved. */
+  .mission-popover .mission__stats {
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 1rem;
+  }
+
+  .mission-popover .mission__stat {
+    flex-direction: column;
+    gap: 0.15rem;
+    text-align: center;
+  }
+
+  .mission-popover .mission__head {
+    padding: 0.6rem 0.75rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .mission-popover .mission__body {
+    gap: 0.5rem;
+    padding: 0 0.75rem 0.6rem;
+  }
+
+  .mission-popover .mission__briefing {
+    line-height: 1.5;
+  }
+
+  /* Wider and shorter too: eleven columns puts 32 levels in three rows
+     rather than four, and the card now has the width to hold them. */
+  .mission-popover .level-nav__panel {
+    grid-template-columns: repeat(11, 1.6rem);
+    gap: 0.25rem;
+    padding: 0.45rem;
+  }
+
+  .mission-popover .level-nav__tile {
+    height: 1.6rem;
+    font-size: 0.68rem;
   }
 
   .menu--panel .menu__item {
