@@ -113,7 +113,7 @@ export function SideMenu({
           emoji ↩️ — a blue rounded key that looks nothing like the rest of
           the set. Desktop browsers pick text on their own, so this only
           shows up on a real phone. */}
-      <span className="menu__icon" aria-hidden="true">
+      <span className="menu__icon menu__icon--undo" aria-hidden="true">
         {"↩︎"}
       </span>
       <span className="menu__label">Undo</span>

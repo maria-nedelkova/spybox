@@ -558,6 +558,21 @@ body {
     line-height: 1;
   }
 
+  /* Undo gets its own size because the glyphs do not draw at comparable
+     scales. Measured against this font stack, the ink of U+21A9 is 40% of
+     its font-size where U+21BB is 50% and the speaker emoji is 103% — so at
+     one shared size undo drew at barely a third of the icon next to it,
+     which is what read as "too small" rather than the font-size being low.
+     Sized up to put its ink level with reset's and a little beyond.
+
+     This is tuned against the fallback font *this* machine resolves; iOS
+     picks a different one, so if undo still looks short on a phone, this
+     number is the one to move. The durable fix is geometry rather than a
+     glyph, which is a bigger change to the look of the whole set. */
+  .menu__item .menu__icon--undo {
+    font-size: 1.9rem;
+  }
+
   /* Icon-only, but the labels stay in the DOM rather than being display:none
      so each button keeps its accessible name. */
   .menu__label,
