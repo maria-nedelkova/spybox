@@ -1281,6 +1281,21 @@ body {
     padding: 0.75rem 0.5rem;
   }
 
+  /* A nudge down, on top of the measured shift rather than instead of it.
+
+     The measurement centres the glyph on its ink, which is the right answer
+     geometrically and lands dead centre on a laptop; on the phone it still
+     read a shade high by eye. Scoped to this block so it only applies to the
+     device it was judged on, and added to --ink-shift rather than replacing
+     it so the per-device measurement still does the bulk of the work.
+
+     By eye, so adjust it by eye — roughly 1.5px at the size undo is drawn
+     here. Source order matters: this has the same specificity as the base
+     rule, and only wins by sitting later in the file. */
+  .menu__icon--undo {
+    transform: translateY(calc(var(--ink-shift, -0.033em) + 0.05em));
+  }
+
   /* The card stops being anchored to the level button and becomes a panel
      centred on the screen.
 
