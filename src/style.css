@@ -1384,6 +1384,16 @@ body {
     display: none;
   }
 
+  /* The level card too. It is portalled onto body rather than nested inside
+     .app, so hiding the app never reached it — leaving it stranded over the
+     rotate notice for anyone who turned the phone with the card open. In
+     landscape it is sized to cover the screen, which is exactly how much of
+     the notice it covered. Hidden rather than closed, so turning back finds
+     it where it was left. */
+  [data-radix-popper-content-wrapper] {
+    display: none;
+  }
+
   .rotate-notice {
     position: fixed;
     inset: 0;
