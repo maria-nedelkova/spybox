@@ -316,29 +316,27 @@ body {
    — for all three of these it sits below the middle, so the icons rode low in
    cells that were themselves perfectly centred.
 
-   The shifts are the measured gap between each glyph's ink centre and its
-   line-box centre, in em so they hold at whatever size the icon is drawn.
+   --ink-shift is measured on the device by useInkCentring, because the gap
+   depends on the font that drew the glyph and none of these glyphs are in
+   Press Start 2P — they all fall through to whatever the platform offers,
+   and macOS and iOS offer different things. A number measured on a laptop
+   left undo visibly low on a phone.
 
-   Measured against the stack these icons actually inherit, which is not the
-   one on body — body falls back to monospace, the buttons to system-ui, and
-   the two resolve different fonts with metrics far enough apart to send
-   these corrections several times too far. Worth re-measuring on the element
-   itself if they are ever revisited.
-
-   Still only true for the fonts this machine resolves; another platform
-   picks its own, so these correct the bulk of the offset rather than all of
-   it everywhere. The level number and the avatar are left alone — the digits
-   are near enough centred already, and the portrait fills its box. */
+   The fallbacks below are that laptop's measurements. They apply until the
+   hook runs, and stay if the metrics it needs are unavailable, so the icons
+   are never worse off than a fixed guess. The level number and the avatar
+   are left alone — the digits are near enough centred already, and the
+   portrait fills its box. */
 .menu__icon--undo {
-  transform: translateY(-0.033em);
+  transform: translateY(var(--ink-shift, -0.033em));
 }
 
 .menu__icon--reset {
-  transform: translateY(-0.104em);
+  transform: translateY(var(--ink-shift, -0.104em));
 }
 
 .menu__icon--sound {
-  transform: translateY(-0.125em);
+  transform: translateY(var(--ink-shift, -0.125em));
 }
 
 /* The other icons are text and stretch to fill the cell, so their own

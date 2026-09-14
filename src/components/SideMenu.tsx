@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/8bit/button";
 import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/8bit/button-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/8bit/popover";
 import { CHARACTERS, type CharacterId } from "@/game/characters";
+import { useInkCentring } from "@/hooks/useInkCentring";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 /**
@@ -61,6 +62,13 @@ export function SideMenu({
   const compact = useMediaQuery(COMPACT_QUERY);
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
 
+  // None of these glyphs are in Press Start 2P, so each falls through to a
+  // different platform font and sits at a different height inside its line
+  // box. Measured on the device rather than hardcoded — see the hook.
+  const undoIcon = useInkCentring<HTMLSpanElement>("↩︎");
+  const resetIcon = useInkCentring<HTMLSpanElement>("↻");
+  const soundIcon = useInkCentring<HTMLSpanElement>(muted ? "🔇" : "🔊");
+
   // An array rather than a fragment: the grouped variant interleaves pixel
   // separators between them, which needs the items one at a time.
   const items = [
@@ -113,14 +121,14 @@ export function SideMenu({
           emoji ↩️ — a blue rounded key that looks nothing like the rest of
           the set. Desktop browsers pick text on their own, so this only
           shows up on a real phone. */}
-      <span className="menu__icon menu__icon--undo" aria-hidden="true">
+      <span ref={undoIcon} className="menu__icon menu__icon--undo" aria-hidden="true">
         {"↩︎"}
       </span>
       <span className="menu__label">Undo</span>
     </Button>,
 
     <Button key="reset" variant="secondary" className="menu__item" onClick={onReset}>
-      <span className="menu__icon menu__icon--reset" aria-hidden="true">
+      <span ref={resetIcon} className="menu__icon menu__icon--reset" aria-hidden="true">
         ↻
       </span>
       <span className="menu__label">Reset</span>
@@ -134,7 +142,7 @@ export function SideMenu({
       aria-pressed={!muted}
       title={muted ? "Sound off — click to unmute" : "Sound on — click to mute"}
     >
-      <span className="menu__icon menu__icon--sound" aria-hidden="true">
+      <span ref={soundIcon} className="menu__icon menu__icon--sound" aria-hidden="true">
         {muted ? "🔇" : "🔊"}
       </span>
       <span className="menu__label">Sound</span>
