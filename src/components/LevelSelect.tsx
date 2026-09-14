@@ -21,22 +21,18 @@ export function LevelSelect({
   names,
   activeIndex,
   unlockedCount,
-  onUnlockAll,
   onSelect,
 }: {
   names: readonly string[];
   activeIndex: number;
   /** Levels below this are playable; the rest are locked. */
   unlockedCount: number;
-  /** Opens everything, for someone whose save was cleared. */
-  onUnlockAll: () => void;
   onSelect: (index: number) => void;
 }) {
   const [open, setOpen] = useState(false);
-  // Which locked level was reached for, if any. Clicking one is the only
-  // signal available that a player expected it to be open — there is no way
-  // to tell a cleared save from a first visit, so the way back in waits
-  // behind that click instead of advertising itself to everybody.
+  // Which locked level was reached for, if any, so the press can be answered
+  // with a reason. On a touch screen the tile's title never shows, so without
+  // this a tap on a locked level does nothing at all.
   const [blocked, setBlocked] = useState<number | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -77,8 +73,9 @@ export function LevelSelect({
     }
     if (!NAV_KEYS.includes(event.key)) return;
 
-    // Tiles only: the panel also holds the recovery button, which is not part
-    // of the grid the arrow keys walk.
+    // Tiles only, by class rather than by tag: the panel also holds the
+    // locked-level message, and the grid the arrow keys walk is just the
+    // numbers.
     const tiles = [
       ...(panelRef.current?.querySelectorAll<HTMLButtonElement>(".level-nav__tile") ?? []),
     ];
@@ -204,16 +201,6 @@ export function LevelSelect({
             <p className="level-nav__blocked" role="status">
               Level {blocked + 1} is locked. Finish level {unlockedCount} to
               reach it.
-              <button
-                type="button"
-                className="level-nav__recover"
-                onClick={() => {
-                  onUnlockAll();
-                  setBlocked(null);
-                }}
-              >
-                Played before? Open everything
-              </button>
             </p>
           )}
         </div>

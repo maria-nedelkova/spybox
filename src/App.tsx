@@ -9,7 +9,7 @@ import type { CharacterId } from "@/game/characters";
 import { useGame } from "@/hooks/useGame";
 import { useMuted } from "@/hooks/useMuted";
 import { loadBest, recordScore } from "@/lib/bestScore";
-import { unlockAll, unlockedCount } from "@/lib/progress";
+import { unlockedCount } from "@/lib/progress";
 import { playSound } from "@/lib/sound";
 
 export function App() {
@@ -77,26 +77,17 @@ export function App() {
   // Ask the browser not to evict our storage when it is short of room. Chrome
   // decides silently from how engaged the visitor is, Firefox prompts, and
   // Safari — where storage is cleared after seven idle days, the likeliest
-  // way to lose a save — largely ignores it. Worth the two lines, not worth
-  // relying on: that is what the recovery in the level picker is for.
+  // way to lose a save — largely ignores it. Worth the two lines, and the
+  // only thing standing between a save and losing it: there is no way back in
+  // once it is gone.
   useEffect(() => {
     void navigator.storage?.persist?.();
   }, []);
 
   // Progress is read back out of the best scores rather than tracked
   // separately — finishing a level is what records one. Recomputed when a
-  // score is banked, which is the only thing that can open a new level, or
-  // when the player says they have played this before.
-  const [recovered, setRecovered] = useState(false);
-  const unlocked = useMemo(
-    () => unlockedCount(levelNames),
-    [levelNames, scoreResult, recovered],
-  );
-
-  const onUnlockAll = useCallback(() => {
-    unlockAll();
-    setRecovered(true);
-  }, []);
+  // score is banked, which is the only thing that can open a new level.
+  const unlocked = useMemo(() => unlockedCount(levelNames), [levelNames, scoreResult]);
 
   // The picker answers a locked tile with a reason rather than a jump, but
   // the handler refuses one too: a stale click or a keyboard shortcut should
@@ -120,7 +111,6 @@ export function App() {
     levelIndex,
     levelNames,
     unlockedCount: unlocked,
-    onUnlockAll,
     briefing,
     moves: state.moves,
     pushes: state.pushes,

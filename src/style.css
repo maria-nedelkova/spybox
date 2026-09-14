@@ -968,8 +968,7 @@ body {
 }
 
 /* Spans the grid, under the tiles. Only ever shown after a locked tile is
-   pressed — a first-time player has no reason to press one, so this stays
-   out of the way of everyone who has not lost anything. */
+   pressed, which is the only moment it has anything to say. */
 .level-nav__blocked {
   grid-column: 1 / -1;
   margin: 0.35rem 0 0;
@@ -977,27 +976,6 @@ body {
   line-height: 1.6;
   color: var(--card-foreground);
   text-align: center;
-}
-
-.level-nav__recover {
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.4rem;
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  color: var(--secondary);
-  background: color-mix(in oklab, var(--card) 70%, black);
-  border: 2px solid var(--border);
-  border-radius: 0;
-  cursor: pointer;
-}
-
-.level-nav__recover:hover,
-.level-nav__recover:focus-visible {
-  color: #000;
-  background: var(--accent);
-  border-color: var(--accent);
 }
 
 .level-nav__step:focus-visible,

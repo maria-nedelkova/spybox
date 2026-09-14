@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { type KeyValueStore, loadBest, recordScore } from "./bestScore";
-import { hasUnlockedAll, unlockAll, unlockedCount } from "./progress";
+import { type KeyValueStore, recordScore } from "./bestScore";
+import { unlockedCount } from "./progress";
 
 function memoryStore(): KeyValueStore {
   const data = new Map<string, string>();
@@ -60,26 +60,10 @@ describe("unlockedCount", () => {
   test("a single-level game is entirely open", () => {
     expect(unlockedCount(["Only"], memoryStore())).toBe(1);
   });
-});
 
-describe("unlockAll", () => {
-  test("opens every level", () => {
-    const store = memoryStore();
-    unlockAll(store);
-    expect(unlockedCount(LEVELS, store)).toBe(LEVELS.length);
-  });
-
-  test("is off until it is asked for", () => {
-    const store = memoryStore();
-    expect(hasUnlockedAll(store)).toBe(false);
-    unlockAll(store);
-    expect(hasUnlockedAll(store)).toBe(true);
-  });
-
-  test("does not invent best scores to unlock with", () => {
-    const store = memoryStore();
-    unlockAll(store);
-    // The claim is about a save that is gone, so it leaves the records alone.
-    expect(loadBest("One", store)).toBeNull();
+  test("an empty store opens only the first level", () => {
+    // The save is the best scores and nothing else: with none recorded there
+    // is no way to be further along, however much was played before.
+    expect(unlockedCount(LEVELS, memoryStore())).toBe(1);
   });
 });
