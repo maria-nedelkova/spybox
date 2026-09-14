@@ -1403,27 +1403,38 @@ body {
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
     background: var(--bg);
   }
 
+  /* Sized against the viewport rather than in flat rem.
+
+     Press Start 2P is monospace with a full-em advance, so the line below is
+     25 em wide whatever it is set at — at 1rem that is 400px, wider than the
+     phone this notice exists for. It filled the screen edge to edge and read
+     as though the page had been zoomed. On a desktop window the same rule
+     looks small and unremarkable, which is why it survived this long.
+
+     The vw term keeps it proportionate to the screen it lands on; the rem
+     bounds stop it collapsing on a narrow phone or ballooning at the top of
+     the range. */
   .rotate-notice__icon {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: clamp(1.5rem, 9vw, 2.5rem);
     line-height: 1;
     color: var(--accent);
   }
 
   .rotate-notice__text {
     margin: 0;
-    font-size: 1rem;
+    font-size: clamp(0.6rem, 3.2vw, 1rem);
     color: var(--foreground);
   }
 
   .rotate-notice__hint {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: clamp(0.5rem, 2.4vw, 0.8rem);
     opacity: 0.7;
   }
 }
